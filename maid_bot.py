@@ -1,7 +1,8 @@
-import discord, atexit, time, json, asyncio, random
+import discord, atexit, time, json, asyncio
 from discord.ext import commands
 from datetime import datetime
 from copy import deepcopy
+from numpy import random
 
 jsonfile = "data.json"
 token = "NDk0NTU5MDU3MTUyMzExMjk2.XntWMA.tdBff92dd0O5I-4mMR_3MxJw69A"
@@ -17,21 +18,231 @@ masters = []
 master_template = {"id":0, "activities":[], "index":0}
 activity_template = {"time":0, "name":""}
 
-snooze_time = 1
+snooze_time = 600
+
+responses_greeting = [
+	"nyaa!",
+	"nyaa! nyaa!",
+	"master!",
+	"ohayoo!",
+	"domo!",
+	"hey!",
+	"yo!",
+	"yo nigga!",
+	"whaddup!",
+	"whaddup zoomer!",
+	"nyaa! nyaa! nyaa!",
+	"nyaa! nyaa! nyaa! nyaa!",
+	"nyaa! nyaa! nyaa! nyaa! nyaa!",
+	"hello there!",
+	"greetings mortal!",
+	"hey loser!",
+	"ahoj moj!"
+]
+
+chance_greeting = [
+	0.16,
+	0.16,
+	0.16,
+	0.16,
+	0.16, # 80%
+	0.019,
+	0.019,
+	0.019,
+	0.019,
+	0.019,
+	0.019,
+	0.019,
+	0.019,
+	0.019,
+	0.019, # 19%
+	0.005,
+	0.005 # 1%
+]
+
+responses_ask = [
+	"{} did you {}?",
+	"{} am here to remind you to {}",
+	"{} did you {} already?",
+	"{} please tell me that you {} already",
+	"{} please tell me that you didn't forgot to {}",
+	"{} am here to remind you to do the thing",
+	"{} am here to remind you about the thing",
+	"{} did you do the thing already?",
+	"{} hope you didn't forgot to do the thing",
+	"{} hope you didn't forgot about the thing",
+	"did you do the thing already?",
+	"are you done?",
+	"are you done now?",
+	"vibe check",
+	"yes?"
+]
+
+chance_ask = [
+	0.4,
+	0.4, # 80%
+	0.05,
+	0.05,
+	0.05, # 15%
+	0.005,
+	0.005,
+	0.005,
+	0.005,
+	0.005,
+	0.005,
+	0.005,
+	0.005,
+	0.005,
+	0.005 # 5%
+]
+
+responses_congrats = [
+	"omedetou {}",
+	"congratulations {}",
+	"congrats {}",
+	"{}",
+	"quieres {}",
+	"bro {}",
+	"my man {}",
+	"nice dick {}",
+	"conglaturations {}",
+	"ok"
+]
+
+chance_congrats = [
+	0.2,
+	0.2,
+	0.2,
+	0.2, # 80%
+	0.038,
+	0.038,
+	0.038,
+	0.038,
+	0.038, # 19%
+	0.01 # 1%
+]
+
+responses_emoji = [
+	"👏",
+	"👏👏",
+	"👏👏👏",
+	"👏👏👏👏",
+	"👏👏👏👏👏",
+	"👏👏👏👏👏👏",
+	""
+]
+
+responses_snooze = [
+	"i'll come back in {}",
+	"i'll come back in like {}",
+	"i'll come back in about {}",
+	"i'll be back in {}",
+	"i'll be back in like {}",
+	"i'll be back in about {}",
+	"ama be back in {}",
+	"ama be back in like {}",
+	"ama be back in about {}",
+	"i'll be back 🤖",
+	"you better finish before i come back",
+	"you better be done when i come back",
+	"whatever, not like i care",
+	"whatever",
+	"go die",
+	"die"
+]
+
+chance_snooze = [
+	0.1,
+	0.1,
+	0.1,
+	0.1,
+	0.1,
+	0.1, # 60%
+	0.075,
+	0.075,
+	0.075,
+	0.075, # 30%
+	0.025,
+	0.025,# 5%
+	0.0125,
+	0.0125,
+	0.0125,
+	0.0125 # 5%
+]
+
+responses_add = [
+	"{0} i added {1} to your {2}! {3}",
+	"{0} i have added {1} to your {2}! {3}",
+	"{0} i added {1} to your {2}!",
+	"{0} i have added {1} to your {2}!"
+	"i added {1} to your {2}! {3}",
+	"i have added {1} to your {2}! {3}",
+	"i added {1} to your {2}!",
+	"i have added {1} to your {2}!"
+]
+
+responses_activity = [
+	"this"
+	"this activity",
+	"this task",
+	"this reminder",
+	"the activity",
+	"the task",
+	"the reminder"
+]
+
+responses_tasks = [
+	"list",
+	"list of activities",
+	"list of tasks",
+	"list of reminders"
+]
+
+responses_end = [
+	"thank you for your service!",
+	"arigato gozaimashita!",
+	"thank you!",
+	"arigato!",
+	"thanks!",
+	"thank",
+	"happy?",
+	"feel free to use me again",
+	"feel free to use me again 😏",
+	"me too thanks"
+]
+
+chance_end = [
+	0.18,
+	0.18,
+	0.18,
+	0.18,
+	0.18, # 90%
+	0.02,
+	0.02,
+	0.02,
+	0.02,
+	0.02 # 10%
+]
+
+responses_list = [
+	"{0} here is your {1}!{2}",
+	"here is your {1}!{2}"
+]
+
+responses_remove = [
+	"{0} i have removed {1} from your {2}!",
+	"{0} i removed {1} from your {2}!",
+	"i have removed {1} from your {2}!",
+	"i removed {1} from your {2}!",
+	"done! {0}",
+	"done!"
+]
 
 @bot.event
 async def on_ready():
 	# load all masters and their activities from json
 	await bot.change_presence(activity=discord.Game("with copy.deepcopy()"))
 	data_load()
-
-	global date
-	if date.day != datetime.now().day:
-		date = datetime.now()
-		for master in masters:
-			master["index"] = 0
-		print("new day activities index reset")
-		data_save()
 
 	update_restart()
 	print("maid bot is ready.\n")
@@ -45,11 +256,11 @@ async def on_reaction_add(reaction, user):
 
 		master = get_master(user.id)
 		if reaction.emoji == "✅":
-			master["index"] = (master["index"] + 1) % len(master["activities"])
+			master["index"] = master["index"] + 1
 			data_save()
 			await master_congratulate(master)
-			update_restart()
 		elif reaction.emoji == "⏰":
+			await master_snooze(master)
 			await asyncio.sleep(snooze_time)
 			await master_ask(master)
 
@@ -59,20 +270,29 @@ async def update():
 	masters_to_alert = []
 	while not bot.is_closed():
 
+		global date
+		if date.day != datetime.now().day:
+			date = datetime.now()
+			for master in masters:
+				master["index"] = 0
+			print("new day activities index reset")
+			data_save()
+
 		t = datetime.now().hour * 3600 + datetime.now().minute * 60
 		delta = t
 
 		# find smallest delta
 		for master in masters:
-			master_delta = master["activities"][master["index"]]["time"] - t
-			
-			print(f"id:{master['id']}, master_delta: {master_delta}, delta:{delta}")
-			if master_delta < delta:
-				if master_delta > 0:
-					delta = master_delta
-				else:
-					# if delta is below zero add master to alert list
-					masters_to_alert.append(master)
+			if master["index"] < len(master["activities"]):
+				master_delta = master["activities"][master["index"]]["time"] - t
+				
+				print(f"id:{master['id']}, master_delta: {master_delta}, delta:{delta}")
+				if master_delta < delta:
+					if master_delta > 0:
+						delta = master_delta
+					else:
+						# if delta is below zero add master to alert list
+						masters_to_alert.append(master)
 
 		# alert all masters
 		for alarm in masters_to_alert:
@@ -83,6 +303,12 @@ async def update():
 		print(f"sleep for {delta}")
 		await asyncio.sleep(delta)
 
+def update_restart(): # restart update loop
+	global update_task
+	if update_task != None:
+		update_task.cancel()
+	update_task = bot.loop.create_task(update())
+
 @bot.command()
 async def bully(ctx): # calls all masters for help
 	users = []
@@ -90,19 +316,6 @@ async def bully(ctx): # calls all masters for help
 		if not ctx.message.author.id == i["id"]:
 			users.append("<@{}>".format(i["id"]))
 	await ctx.send("nyaa!! {} 😿 help me pls!!!".format(random.choice(users)))
-
-@bot.command()
-async def test (ctx):
-	user = bot.get_user(ctx.message.author.id)
-	message = await user.send(f"nyaa! have you finised your task?")
-	await message.add_reaction("✅")
-	await message.add_reaction("⏰")
-
-def update_restart(): # restart update loop
-	global update_task
-	if update_task != None:
-		update_task.cancel()
-	update_task = bot.loop.create_task(update())
 
 @bot.command()
 async def add(ctx, *args): # add activity command, argument time of day in HH:MM and name of the activity
@@ -123,27 +336,40 @@ async def add(ctx, *args): # add activity command, argument time of day in HH:MM
 		print(f"created new master with id {id}")
 
 	# add a new activity and save
-	add_activity(ctx, args, master)
+	activity_add(master, ctx, args)
 	data_save()
-	update_restart()
 
 	await master_add(master, ctx)
 
 @bot.command(aliases=["list", "activities", "tasks"])
 async def _list(ctx):
 	master = get_master(ctx.message.author.id)
-	activities = []
-	for i in master["activities"]:
-		d = time.gmtime (i["time"])
-		activities.append("{} {}".format(time.strftime("%H:%M", d), i["name"]))
-	await master_list(master, ctx, '\n'.join(activities))
+	items = []
+	for i in range(0, len(master["activities"])):
+		items.append("{}. {}".format(i, activity_text(master["activities"][i])))
+	text = "\n```fix\n{}```".format('\n'.join(items))
+	await master_list(master, ctx, text)
 
 @bot.command()
-async def remove(ctx, index):
-	master = get_master(ctx.messages.author.id)
+async def remove(ctx, index:int):
+	master = get_master(ctx.message.author.id)
 	if master["index"] >= index:
 		master["index"] -= 1
-	master["activities"].remove(index)
+	activity = master["activities"].pop(index)
+	data_save()
+	await master_remove(master, ctx, activity_text(activity))
+
+@bot.command()
+async def intro(ctx, id:int):
+	if ctx.message.author.id == 204981328305848330:
+		await bot.get_channel(id).send("su... sumimasendesuka!\nam your new maid bot! yoroshiku onegaishimasu!\nmy puwpose is to remind you to do things on a daily basis!\nif u want to use me😏, type '.add <time of day in HH:MM format> <description of what you want to do at that specific time that you want to be remided of>'\nsexample: .add 09:30 make coffee\nand after that ill sednd you a dm at 9:30 to remind you to make a coffeee\nwith the comand .list you can keep trac of all your reminders, if you want to remove a riminder just look up the index of the remeinder you want to delet with .list, and type '.remove <index of ther eminder u want to annihilate>' an dpress enter.\nam i cleare with everyone? u don't need to use my services, but please consciddre\nthanky ou for having me!")
+
+@bot.command()
+async def stop(ctx):
+	if ctx.message.author.id == 204981328305848330:
+		bot.loop.close()
+	else:
+		ctx.send("nice try smartass")
 
 @atexit.register
 def exit_handler():
@@ -156,43 +382,83 @@ def get_master(id):
 	return None
 
 async def master_ask(master):
-	message = await bot.get_user(master["id"]).send(f"nyaa! have you finised your task?")
+	greeting = random.choice(responses_greeting, p=chance_greeting)
+	activity = master["activities"][master["index"]]["name"]
+	message = await bot.get_user(master["id"]).send(random.choice(responses_ask, p=chance_ask).format(greeting, activity))
 	await message.add_reaction("✅")
 	await message.add_reaction("⏰")
 
 async def master_congratulate(master):
-	await bot.get_user(master["id"]).send(f"nyaa! 👏 congrats!")
+	emoji = random.choice(responses_emoji)
+	await bot.get_user(master["id"]).send(random.choice(responses_congrats, p=chance_congrats).format(emoji))
+
+async def master_snooze(master):
+	t = f"{int(snooze_time / 60)} minutes"
+	await bot.get_user(master["id"]).send(random.choice(responses_snooze, p=chance_snooze).format(t))
 
 async def master_add(master, ctx):
-	await ctx.send(f"nyaa! task added to your scheduele master!")
+	greeting = random.choice(responses_greeting, p=chance_greeting)
+	activity = random.choice(responses_activity)
+	tasks = random.choice(responses_tasks)
+	end = random.choice(responses_end, p=chance_end)
+	await ctx.send(random.choice(responses_add).format(greeting, activity, tasks, end))
 
 async def master_list(master, ctx, text):
-	await ctx.send("nyaa! here is a list of all your tasks master!\n```{}```".format(text))
+	greeting = random.choice(responses_greeting, p=chance_greeting)
+	tasks = random.choice(responses_tasks)
+	await ctx.send(random.choice(responses_list).format(greeting, tasks, text))
 
 async def master_remove(master, ctx, text):
-	await ctx.send("nyaa! i removed the task vrom your tasks!")
+	greeting = random.choice(responses_greeting, p=chance_greeting)
+	activity = random.choice(responses_activity)
+	tasks = random.choice(responses_tasks)
+	await ctx.send(random.choice(responses_remove).format(greeting, activity, tasks))
 
-def add_activity(ctx, args, master):
+def activity_add(master, ctx, args):
 	# create a new activity from a template
 	new_activity = deepcopy(activity_template)
 
-	new_activity["time"] = time_to_seconds(args[0])
+	t = time_to_seconds(args[0])
+	ask = t > datetime.now().hour * 3600 + datetime.now().minute * 60
+	
+	new_activity["time"] = t
 	new_activity["name"] = " ".join(args[1:])
 
-	# append activity to the master activities array
-	master["activities"].append(new_activity)
-	print (f"added new activity for master {master['id']} {new_activity} \n{masters}")
+	index = None
+	for i in range(0, len(master["activities"])):
+		if master["activities"][i]["time"] > new_activity["time"]:
+			index = i
+			break
+
+	# add activity to the master activities array
+	if index != None:
+		if master["index"] > index or master["index"] == index and not ask:
+			master["index"] += 1
+		master["activities"].insert(i, new_activity)
+	else:
+		if master["index"] == len(master["activities"]) and not ask:
+			master["index"] += 1
+		master["activities"].append(new_activity)
+	print (f"added new activity for master {master['id']} {new_activity}")
+
+def activity_text(activity):
+	return "{} {}".format(seconds_to_time(activity["time"]), activity["name"])
 
 def time_to_seconds(time_string):
 	h, m = time_string.split(":")
-	return int(h) * 3600 + int(h) * 60
+	return int(h) * 3600 + int(m) * 60
+
+def seconds_to_time(seconds):
+	return time.strftime("%H:%M", time.gmtime(seconds))
 
 def data_save():
 	save_data = {"date":date.strftime("%Y/%m/%d"), "masters":masters}
 
 	with open(jsonfile, 'w') as fp:
-		json.dump(save_data, fp)
+		json.dump(save_data, fp, indent="\t")
 		print("saved data to json")
+	
+	update_restart()
 
 def data_load():
 	with open(jsonfile) as fp:
