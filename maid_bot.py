@@ -1,8 +1,7 @@
-import discord, atexit, time, json, asyncio
+import discord, atexit, time, json, asyncio, random
 from discord.ext import commands
 from datetime import datetime
 from copy import deepcopy
-from numpy import random
 
 jsonfile = "data.json"
 token = "NDk0NTU5MDU3MTUyMzExMjk2.XntWMA.tdBff92dd0O5I-4mMR_3MxJw69A"
@@ -23,77 +22,50 @@ snooze_time = 600
 responses_greeting = [
 	"nyaa!",
 	"nyaa! nyaa!",
+	"nyaa! nyaa! nyaa!",
+	"nyaa! nyaa! nyaa! nyaa!",
+	"nyaa! nyaa! nyaa! nyaa! nyaa!",
 	"master!",
+	"ma... master!",
 	"ohayoo!",
 	"domo!",
 	"hey!",
+	"hey loser!",
 	"yo!",
 	"yo nigga!",
 	"whaddup!",
 	"whaddup zoomer!",
-	"nyaa! nyaa! nyaa!",
-	"nyaa! nyaa! nyaa! nyaa!",
-	"nyaa! nyaa! nyaa! nyaa! nyaa!",
+	"whaddup dude!",
+	"whaddup nigga!",
+	"dude!",
 	"hello there!",
 	"greetings mortal!",
-	"hey loser!",
 	"ahoj moj!"
 ]
 
-chance_greeting = [
-	0.16,
-	0.16,
-	0.16,
-	0.16,
-	0.16, # 80%
-	0.019,
-	0.019,
-	0.019,
-	0.019,
-	0.019,
-	0.019,
-	0.019,
-	0.019,
-	0.019,
-	0.019, # 19%
-	0.005,
-	0.005 # 1%
-]
-
 responses_ask = [
-	"{} did you {}?",
-	"{} am here to remind you to {}",
-	"{} did you {} already?",
-	"{} please tell me that you {} already",
-	"{} please tell me that you didn't forgot to {}",
-	"{} am here to remind you to do the thing",
-	"{} am here to remind you about the thing",
-	"{} did you do the thing already?",
-	"{} hope you didn't forgot to do the thing",
-	"{} hope you didn't forgot about the thing",
+	"{0} did you {1}?",
+	"{0} am here to remind you to {1}",
+	"{0} did you {1} already?",
+	"{0} please tell me that you {1} already",
+	"{0} please tell me that you didn't forgot to {1}",
+	"{0} am here to remind you to do the thing",
+	"{0} am here to remind you about the thing",
+	"{0} did you do the thing already?",
+	"{0} hope you didn't forgot to do the thing",
+	"{0} hope you didn't forgot about the thing",
+	"did you {1}?",
+	"am here to remind you to {1}",
+	"did you {1} already?",
+	"please tell me that you {1} already",
+	"please tell me that you didn't forgot to {1}",
 	"did you do the thing already?",
-	"are you done?",
 	"are you done now?",
-	"vibe check",
+	"are you done?",
+	"done now?",
+	"done?",
+	"vibe check 🔫",
 	"yes?"
-]
-
-chance_ask = [
-	0.4,
-	0.4, # 80%
-	0.05,
-	0.05,
-	0.05, # 15%
-	0.005,
-	0.005,
-	0.005,
-	0.005,
-	0.005,
-	0.005,
-	0.005,
-	0.005,
-	0.005,
-	0.005 # 5%
 ]
 
 responses_congrats = [
@@ -103,23 +75,15 @@ responses_congrats = [
 	"{}",
 	"quieres {}",
 	"bro {}",
+	"bruh {}",
 	"my man {}",
 	"nice dick {}",
 	"conglaturations {}",
+	"yo, yoooo!!! {}",
+	"yay!!! {}",
+	"am glad you're doing ok! {}",
+	"am glad! {}",
 	"ok"
-]
-
-chance_congrats = [
-	0.2,
-	0.2,
-	0.2,
-	0.2, # 80%
-	0.038,
-	0.038,
-	0.038,
-	0.038,
-	0.038, # 19%
-	0.01 # 1%
 ]
 
 responses_emoji = [
@@ -139,35 +103,21 @@ responses_snooze = [
 	"i'll be back in {}",
 	"i'll be back in like {}",
 	"i'll be back in about {}",
+	"i'll give you {}",
+	"i'll give you like {}",
+	"i'll give you like {}, make it quick",
+	"i'll be back 🤖",
 	"ama be back in {}",
 	"ama be back in like {}",
 	"ama be back in about {}",
-	"i'll be back 🤖",
+	"i back in {}",
+	"wait {}",
 	"you better finish before i come back",
 	"you better be done when i come back",
 	"whatever, not like i care",
 	"whatever",
 	"go die",
 	"die"
-]
-
-chance_snooze = [
-	0.1,
-	0.1,
-	0.1,
-	0.1,
-	0.1,
-	0.1, # 60%
-	0.075,
-	0.075,
-	0.075,
-	0.075, # 30%
-	0.025,
-	0.025,# 5%
-	0.0125,
-	0.0125,
-	0.0125,
-	0.0125 # 5%
 ]
 
 responses_add = [
@@ -209,19 +159,6 @@ responses_end = [
 	"feel free to use me again",
 	"feel free to use me again 😏",
 	"me too thanks"
-]
-
-chance_end = [
-	0.18,
-	0.18,
-	0.18,
-	0.18,
-	0.18, # 90%
-	0.02,
-	0.02,
-	0.02,
-	0.02,
-	0.02 # 10%
 ]
 
 responses_list = [
@@ -279,7 +216,7 @@ async def update():
 			data_save()
 
 		t = datetime.now().hour * 3600 + datetime.now().minute * 60
-		delta = t
+		delta = 86400 - t # time till midnight
 
 		# find smallest delta
 		for master in masters:
@@ -287,12 +224,12 @@ async def update():
 				master_delta = master["activities"][master["index"]]["time"] - t
 				
 				print(f"id:{master['id']}, master_delta: {master_delta}, delta:{delta}")
-				if master_delta < delta:
-					if master_delta > 0:
+				if master_delta > 0:
+					if master_delta < delta:
 						delta = master_delta
-					else:
-						# if delta is below zero add master to alert list
-						masters_to_alert.append(master)
+				else:
+					# if delta is below zero add master to alert list
+					masters_to_alert.append(master)
 
 		# alert all masters
 		for alarm in masters_to_alert:
@@ -367,7 +304,7 @@ async def intro(ctx, id:int):
 @bot.command()
 async def stop(ctx):
 	if ctx.message.author.id == 204981328305848330:
-		bot.loop.close()
+		bot.loop.stop()
 	else:
 		ctx.send("nice try smartass")
 
@@ -382,34 +319,34 @@ def get_master(id):
 	return None
 
 async def master_ask(master):
-	greeting = random.choice(responses_greeting, p=chance_greeting)
+	greeting = random.choice(responses_greeting)
 	activity = master["activities"][master["index"]]["name"]
-	message = await bot.get_user(master["id"]).send(random.choice(responses_ask, p=chance_ask).format(greeting, activity))
+	message = await bot.get_user(master["id"]).send(random.choice(responses_ask).format(greeting, activity))
 	await message.add_reaction("✅")
 	await message.add_reaction("⏰")
 
 async def master_congratulate(master):
 	emoji = random.choice(responses_emoji)
-	await bot.get_user(master["id"]).send(random.choice(responses_congrats, p=chance_congrats).format(emoji))
+	await bot.get_user(master["id"]).send(random.choice(responses_congrats).format(emoji))
 
 async def master_snooze(master):
 	t = f"{int(snooze_time / 60)} minutes"
-	await bot.get_user(master["id"]).send(random.choice(responses_snooze, p=chance_snooze).format(t))
+	await bot.get_user(master["id"]).send(random.choice(responses_snooze).format(t))
 
 async def master_add(master, ctx):
-	greeting = random.choice(responses_greeting, p=chance_greeting)
+	greeting = random.choice(responses_greeting)
 	activity = random.choice(responses_activity)
 	tasks = random.choice(responses_tasks)
-	end = random.choice(responses_end, p=chance_end)
+	end = random.choice(responses_end)
 	await ctx.send(random.choice(responses_add).format(greeting, activity, tasks, end))
 
 async def master_list(master, ctx, text):
-	greeting = random.choice(responses_greeting, p=chance_greeting)
+	greeting = random.choice(responses_greeting)
 	tasks = random.choice(responses_tasks)
 	await ctx.send(random.choice(responses_list).format(greeting, tasks, text))
 
 async def master_remove(master, ctx, text):
-	greeting = random.choice(responses_greeting, p=chance_greeting)
+	greeting = random.choice(responses_greeting)
 	activity = random.choice(responses_activity)
 	tasks = random.choice(responses_tasks)
 	await ctx.send(random.choice(responses_remove).format(greeting, activity, tasks))
