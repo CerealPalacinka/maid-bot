@@ -65,7 +65,7 @@
 				}
 			],
 			"index": 2,
-			"wait": false
+			"wait": true
 		},
 		{
 			"id": 273160565051097090,
@@ -85,9 +85,13 @@
 				{
 					"time": 0,
 					"name": "sp\u00e1nok"
+				},
+				{
+					"time": 18000,
+					"name": "dick"
 				}
 			],
-			"index": 1,
+			"index": 2,
 			"wait": false
 		},
 		{

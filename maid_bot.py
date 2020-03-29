@@ -1,4 +1,10 @@
-import discord, atexit, time, json, asyncio, random
+import discord
+import atexit
+import time
+import json
+import asyncio
+import random
+
 from discord.ext import commands
 from datetime import datetime
 from copy import deepcopy
@@ -14,7 +20,7 @@ update_task = None
 responses = []
 
 date = None
-#git is great :smiley_face:
+
 masters = []
 master_template = {"id":0, "activities":[], "index":0, "wait":False}
 activity_template = {"time":0, "name":""}
@@ -109,7 +115,8 @@ responses_congrats = [
 	"am glad! {}",
 	"keep it up man! {}",
 	"keep it up! {}",
-	"ok"
+	"ok {}",
+	"good job",
 ]
 
 responses_emoji = [
@@ -234,6 +241,7 @@ responses_remove = [
 	"done!"
 ]
 
+
 @bot.event
 async def on_ready():
 	# load all masters and their activities from json
@@ -242,6 +250,7 @@ async def on_ready():
 
 	update_restart()
 	print("maid bot is ready.\n")
+
 
 @bot.event
 async def on_reaction_add(reaction, user):
@@ -259,6 +268,7 @@ async def on_reaction_add(reaction, user):
 			await master_congratulate(master)
 		elif reaction.emoji == "⏰":
 			bot.loop.create_task(master_snooze(master))
+
 
 async def update():
 	await bot.wait_until_ready()
@@ -309,22 +319,25 @@ async def update():
 		print(f"sleep for {delta}")
 		await asyncio.sleep(delta)
 
+
 def update_restart(): # restart update loop
 	global update_task
 	if update_task != None:
 		update_task.cancel()
 	update_task = bot.loop.create_task(update())
 
+
 @bot.command()
-async def bully(ctx): # calls all masters for help
+async def bully(ctx):  # calls all masters for help
 	users = []
 	for i in masters:
 		if not ctx.message.author.id == i["id"]:
 			users.append("<@{}>".format(i["id"]))
 	await ctx.send("nyaa!! {} 😿 help me pls!!!".format(random.choice(users)))
 
+
 @bot.command()
-async def add(ctx, *args): # add activity command, argument time of day in HH:MM and name of the activity
+async def add(ctx, *args):  # add activity command, argument time of day in HH:MM and name of the activity
 	# users id
 	id = ctx.message.author.id
 
@@ -335,7 +348,7 @@ async def add(ctx, *args): # add activity command, argument time of day in HH:MM
 			break
 	
 	# if user isn't a master, create a new master from a template and assign users id
-	if master == None:
+	if master is None:
 		master = deepcopy(master_template)
 		master["id"] = id
 		masters.append(master)
@@ -349,10 +362,11 @@ async def add(ctx, *args): # add activity command, argument time of day in HH:MM
 
 	await master_add(ctx)
 
+
 @bot.command(aliases=["list", "activities", "tasks"])
 async def _list(ctx):
 	master = get_master(ctx.message.author.id)
-	if master != None and len(master["activities"]) > 0:
+	if master is not None and len(master["activities"]) > 0:
 		items = []
 		for i in range(0, len(master["activities"])):
 			items.append("{}. {}".format(i, activity_text(master["activities"][i])))
@@ -360,11 +374,12 @@ async def _list(ctx):
 		await master_list(ctx, text)
 	else:
 		await master_nolist(ctx)
-	
+
+
 @bot.command()
 async def remove(ctx, index:int):
 	master = get_master(ctx.message.author.id)
-	if master != None and len(master["activities"]) > 0:
+	if master is not None and len(master["activities"]) > 0:
 		index %= len(master["activities"])
 		if master["index"] >= index:
 			master["index"] -= 1
@@ -376,11 +391,12 @@ async def remove(ctx, index:int):
 		await master_remove(ctx)
 	else:
 		await master_nolist(ctx) 
-	
+
+
 @bot.command()
 async def removeall(ctx):
 	master = get_master(ctx.message.author.id)
-	if master != None and len(master["activities"]) > 0:
+	if master is not None and len(master["activities"]) > 0:
 		master["activities"].clear()
 		data_save()
 
@@ -390,21 +406,37 @@ async def removeall(ctx):
 	else:
 		await master_nolist(ctx) 
 
+
 @bot.command()
-async def intro(ctx, id:int):
+async def intro(ctx, id: int):
 	if ctx.message.author.id == 204981328305848330:
-		await bot.get_channel(id).send("su... sumimasendesuka!\nam your new maid bot! yoroshiku onegaishimasu!\nmy puwpose is to remind you to do things on a daily basis!\nif u want to use me😏, type '.add <time of day in HH:MM format> <description of what you want to do at that specific time that you want to be remided of>'\nsexample: .add 09:30 make coffee\nand after that ill sednd you a dm at 9:30 to remind you to make a coffeee\nwith the comand .list you can keep trac of all your reminders, if you want to remove a riminder just look up the index of the remeinder you want to delet with .list, and type '.remove <index of ther eminder u want to annihilate>' an dpress enter.\nam i cleare with everyone? u don't need to use my services, but please consciddre\nthanky ou for having me!")
+		await bot.get_channel(id).send(
+			"su... sumimasendesuka!\n"
+			"am your new maid bot! yoroshiku onegaishimasu!\n"
+			"my puwpose is to remind you to do things on a daily basis!\n"
+			"if u want to use me😏, type '.add <time of day in HH:MM format> "
+			"<description of what you want to do at that specific time that you want to be remided of>'\n"
+			"sexample: .add 09:30 make coffee\n"
+			"and after that ill sednd you a dm at 9:30 to remind you to make a coffeee\n"
+			"with the comand .list you can keep trac of all your reminders,"
+			" if you want to remove a reminder just look up the index of the"
+			" reminder you want to delet with .list, "
+			"and type '.remove <index of ther eminder u want to annihilate>' an dpress enter.\n"
+			"am i cleare with everyone? u don't need to use my services, but please consciddre\nthanky ou for having me!")
+
 
 @bot.command()
 async def stop(ctx):
-	if ctx.message.author.id == 204981328305848330:
+	if ctx.message.author.id == 204981328305848330 or ctx.message.author.id == 270603696683876352:
 		bot.loop.stop()
 	else:
-		ctx.send("nice try smartass")
+		await ctx.send("nice try smartass")
+
 
 @atexit.register
 def exit_handler():
 	print("stopping maid bot.")
+
 
 async def master_ask(master, late=False):
 	index = master["index"]
@@ -426,15 +458,18 @@ async def master_ask(master, late=False):
 		await message.delete()
 		await master_ask(master)
 
+
 async def master_congratulate(master):
 	emoji = random.choice(responses_emoji)
 	await bot.get_user(master["id"]).send(random.choice(responses_congrats).format(emoji))
+
 
 async def master_snooze(master):
 	t = f"{int(snooze_time / 60)} minutes"
 	await bot.get_user(master["id"]).send(random.choice(responses_snooze).format(t))
 	await asyncio.sleep(snooze_time)
 	bot.loop.create_task(master_ask(master))
+
 
 async def master_add(ctx):
 	greeting = random.choice(responses_greeting)
@@ -443,16 +478,19 @@ async def master_add(ctx):
 	end = random.choice(responses_end)
 	await ctx.send(random.choice(responses_add).format(greeting, activity, tasks, end))
 
+
 async def master_list(ctx, text):
 	greeting = random.choice(responses_greeting)
 	tasks = random.choice(responses_tasks)
 	end = random.choice(responses_end)
 	await ctx.send(random.choice(responses_list).format(greeting, tasks, text, end))
 
+
 async def master_nolist(ctx):
 	greeting = random.choice(responses_greeting)
 	tasks = random.choice(responses_tasks)
 	await ctx.send(random.choice(responses_nolist).format(greeting, tasks))
+
 
 async def master_remove(ctx):
 	greeting = random.choice(responses_greeting)
@@ -460,9 +498,11 @@ async def master_remove(ctx):
 	tasks = random.choice(responses_tasks)
 	await ctx.send(random.choice(responses_remove).format(greeting, activity, tasks))
 
+
 def response_wait(master, late=False):
 	bot.loop.create_task(master_ask(master, late))
 	pass
+
 
 def get_wait(master, index):
 	for item in responses:
@@ -470,11 +510,13 @@ def get_wait(master, index):
 			return item
 	return None
 
+
 def get_master(id):
 	for i in masters:
 		if i["id"] == id:
 			return i
 	return None
+
 
 def activity_add(master, ctx, args):
 	# create a new activity from a template
@@ -503,15 +545,19 @@ def activity_add(master, ctx, args):
 		master["activities"].append(new_activity)
 	print (f"added new activity for master {master['id']} {new_activity}")
 
+
 def activity_text(activity):
 	return "{} {}".format(seconds_to_time(activity["time"]), activity["name"])
+
 
 def time_to_seconds(time_string):
 	h, m = time_string.split(":")
 	return int(h) * 3600 + int(m) * 60
 
+
 def seconds_to_time(seconds):
 	return time.strftime("%H:%M", time.gmtime(seconds))
+
 
 def data_save():
 	save_data = {"date":date.strftime("%Y/%m/%d"), "masters":masters}
@@ -519,6 +565,7 @@ def data_save():
 	with open(jsonfile, 'w') as fp:
 		json.dump(save_data, fp, indent="\t")
 		print("saved data to json")
+
 
 def data_load():
 	with open(jsonfile) as fp:
@@ -534,5 +581,6 @@ def data_load():
 			masters.append(i)
 
 		print("loaded data from json")
+
 
 bot.run(token)
