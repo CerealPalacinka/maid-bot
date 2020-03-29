@@ -1,16 +1,16 @@
 {
-	"date": "2020/03/28",
+	"date": "2020/03/29",
 	"masters": [
 		{
 			"id": 204981328305848330,
 			"activities": [
 				{
 					"time": 1800,
-					"name": "refil the water bottle"
+					"name": "brush your teeth"
 				},
 				{
 					"time": 2400,
-					"name": "brush your teeth"
+					"name": "refill the water bottle"
 				},
 				{
 					"time": 3600,
@@ -30,39 +30,54 @@
 				},
 				{
 					"time": 59400,
-					"name": "refil the water bottle"
+					"name": "refill the water bottle"
+				},
+				{
+					"time": 82800,
+					"name": "visit nhentai.net"
 				},
 				{
 					"time": 84600,
 					"name": "shower"
 				}
 			],
-			"index": 3
+			"index": 0,
+			"wait": true
 		},
 		{
 			"id": 273156730911850496,
-			"activities": [],
-			"index": 0
+			"activities": [
+				{
+					"time": 0,
+					"name": "vyhra\u0165 hru"
+				},
+				{
+					"time": 0,
+					"name": "If you \ud83d\udc81\u200d\u2642\ufe0f fap \ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83c\udf46 too much \u26a0\ufe0f\u26a0\ufe0f\u26a0\ufe0f you will soon \ud83d\udd1c\ud83d\udd1c\ud83d\udd1c run out of cummies \ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\ude31\ud83d\ude31\ud83d\ude31\ud83d\ude31\ud83d\ude31And we dont \ud83d\ude45\u200d\u2642\ufe0f want that to happen \ud83d\ude16 because we need \ud83d\ude33 to give \ud83d\ude29\ud83d\ude29\ud83d\ude29 cummybot \ud83e\udd16\ud83e\udd16\ud83e\udd16 some delicious \ud83d\ude0b\ud83d\ude0b\ud83d\ude0b cummies \ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6"
+				},
+				{
+					"time": 12120,
+					"name": "Fuck pickle rick \ud83d\ude24\ud83e\udd1c i wanna take pickle \ud83e\udd52 rick and shove him up\ud83d\udc46my urethra\ud83c\udf46 and pull him out of my anus \ud83c\udf51 so he will be covered in shit \ud83d\udca9. After that I will take that motherfucker \ud83d\ude4d\ud83c\udffb\u200d\u2640\ufe0f\ud83c\udf46 and I will bang his head in with my cum \ud83d\udca6 sock. After that I will feed him to my pigs\ud83d\udc16\ud83d\udc37 and wait until they shit \ud83d\udca9 him out. Once that is done I will cover him in car\ud83d\ude97 fuel\u26fd\ud83d\udca8 and I will put him on fire \ud83d\udd25 so that he dies in a slow \ud83d\udd52 and painful \ud83d\ude2d\ud83d\ude02 death\u2620\ufe0f\u2620\ufe0f\u2620\ufe0f"
+				},
+				{
+					"time": 45240,
+					"name": "\ud83d\udea8 BEEP! \ud83d\udea8BEEP! \ud83d\udea8MY PP \ud83c\udf46 IS EJACULATING \ud83d\udca6 \ud83d\udca6 IN YOUR PP HOLE \ud83d\udd73\ud83d\udc31!! GOTTA PULL OUT \ud83c\udf46\ud83e\udd0f\ud83e\udd0fQUICK\ud83c\udfc3\u200d\u2642\ufe0f!! OH NO ITS STUCK \ud83d\udd12\ud83d\udd12!! IM CUMMING \ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6\ud83d\udca6!! \ud83e\uddde\ud83e\uddde\ud83e\uddde\ud83e\udd5a YOURE PREGNANT?? \ud83d\udc76\ud83d\udc76\ud83d\udc76\ud83d\udc76\ud83d\udc76\ud83d\udc76\ud83d\udc76\ud83d\udc76\ud83d\udc76 OH GEEZ"
+				}
+			],
+			"index": 2,
+			"wait": false
 		},
 		{
 			"id": 273160565051097090,
-			"activities": [
-				{
-					"time": 40800,
-					"name": "jeba\u0165 \u017eivot"
-				}
-			],
-			"index": 0
+			"activities": [],
+			"index": 1,
+			"wait": false
 		},
 		{
 			"id": 273868146878971915,
-			"activities": [
-				{
-					"time": 39480,
-					"name": "kill myself"
-				}
-			],
-			"index": 0
+			"activities": [],
+			"index": 0,
+			"wait": false
 		},
 		{
 			"id": 270603696683876352,
@@ -72,7 +87,14 @@
 					"name": "sp\u00e1nok"
 				}
 			],
-			"index": 1
+			"index": 1,
+			"wait": false
+		},
+		{
+			"id": 212002032624730112,
+			"activities": [],
+			"index": 0,
+			"wait": false
 		}
 	]
 }
