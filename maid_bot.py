@@ -399,7 +399,7 @@ async def intro(ctx, id:int):
 
 @bot.command()
 async def stop(ctx):
-	if ctx.message.author.id == 204981328305848330:
+	if ctx.message.author.id == 204981328305848330 or ctx.message.author.id == 270603696683876352:
 		bot.loop.stop()
 	else:
 		ctx.send("nice try smartass")

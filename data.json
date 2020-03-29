@@ -65,12 +65,12 @@
 				}
 			],
 			"index": 2,
-			"wait": false
+			"wait": true
 		},
 		{
 			"id": 273160565051097090,
 			"activities": [],
-			"index": 0,
+			"index": 1,
 			"wait": false
 		},
 		{
