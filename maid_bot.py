@@ -14,7 +14,7 @@ update_task = None
 responses = []
 
 date = None
-#git is great :smiley_face:
+#git is great 🙂
 masters = []
 master_template = {"id":0, "activities":[], "index":0, "wait":False}
 activity_template = {"time":0, "name":""}
@@ -251,13 +251,13 @@ async def on_reaction_add(reaction, user):
 		await reaction.message.remove_reaction("⏰", bot.user)
 
 		master = get_master(user.id)
-		if reaction.emoji == "✅":
+		if reaction.emoji == "✅": # iterate index
 			master["index"] = master["index"] + 1
 			master["wait"] = False
 			data_save()
 			update_restart()
 			await master_congratulate(master)
-		elif reaction.emoji == "⏰":
+		elif reaction.emoji == "⏰": # ask again after snooze
 			bot.loop.create_task(master_snooze(master))
 
 async def update():
@@ -364,9 +364,11 @@ async def _list(ctx):
 @bot.command()
 async def remove(ctx, index:int):
 	master = get_master(ctx.message.author.id)
-	if master != None and len(master["activities"]) > 0:
-		index %= len(master["activities"])
-		if master["index"] >= index:
+	length = len(master["activities"])
+
+	if master != None and length > 0:
+		index %= length
+		if master["index"] >= index and master["index"] != 0: # set back index if removed activity already happend
 			master["index"] -= 1
 		activity = master["activities"].pop(index)
 		data_save()
@@ -419,10 +421,6 @@ async def master_ask(master, late=False):
 
 	await asyncio.sleep(snooze_time)
 	if index == master["index"]:
-		""" wait = get_wait(master, index)
-		if wait != None:
-			wait[2].cancel()
-			responses.remove(wait) """
 		await message.delete()
 		await master_ask(master)
 
@@ -459,16 +457,6 @@ async def master_remove(ctx):
 	activity = random.choice(responses_activity)
 	tasks = random.choice(responses_tasks)
 	await ctx.send(random.choice(responses_remove).format(greeting, activity, tasks))
-
-def response_wait(master, late=False):
-	bot.loop.create_task(master_ask(master, late))
-	pass
-
-def get_wait(master, index):
-	for item in responses:
-		if item[0] == master and item[1] == index:
-			return item
-	return None
 
 def get_master(id):
 	for i in masters:
