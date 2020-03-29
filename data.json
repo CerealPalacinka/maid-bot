@@ -41,8 +41,8 @@
 					"name": "shower"
 				}
 			],
-			"index": 0,
-			"wait": true
+			"index": 3,
+			"wait": false
 		},
 		{
 			"id": 273156730911850496,
