@@ -14,7 +14,7 @@ update_task = None
 responses = []
 
 date = None
-
+#git is great :smiley_face:
 masters = []
 master_template = {"id":0, "activities":[], "index":0, "wait":False}
 activity_template = {"time":0, "name":""}
