@@ -239,6 +239,9 @@ async def on_ready():
 	# load all masters and their activities from json
 	await bot.change_presence(activity=discord.Game("with copy.deepcopy()"))
 	data_load()
+	
+	for master in masters:
+		master["wait"] = False
 
 	update_restart()
 	print("maid bot is ready.\n")
@@ -254,6 +257,9 @@ async def on_reaction_add(reaction, user):
 		if reaction.emoji == "✅": # iterate index
 			master["index"] = master["index"] + 1
 			master["wait"] = False
+
+			response_cancel(master["id"])
+
 			data_save()
 			update_restart()
 			await master_congratulate(master)
@@ -272,6 +278,7 @@ async def update():
 			for master in masters:
 				master["index"] = 0
 				master["wait"] = False
+				response_cancel(master["id"])
 			print("new day activities index reset")
 			data_save()
 
@@ -301,9 +308,8 @@ async def update():
 
 			master["wait"] = True
 			data_save()
-			#response_wait(master, late)
-			bot.loop.create_task(master_ask(master, late))
-			# await master_ask(master, late)
+
+			responses.append({master["id"], bot.loop.create_task(master_ask(master, late))})
 
 		# continue loop after delta seconds
 		print(f"sleep for {delta}")
@@ -405,8 +411,15 @@ async def stop(ctx):
 		ctx.send("nice try smartass")
 
 @atexit.register
-def exit_handler():
+async def exit_handler():
 	print("stopping maid bot.")
+
+def response_cancel(master_id):
+	for response in responses:
+		if response[0] == master_id:
+			response[1].cancel()
+			responses.remove(response)
+			break
 
 async def master_ask(master, late=False):
 	index = master["index"]
@@ -420,9 +433,8 @@ async def master_ask(master, late=False):
 	await message.add_reaction("⏰")
 
 	await asyncio.sleep(snooze_time)
-	if index == master["index"]:
-		await message.delete()
-		await master_ask(master)
+	await message.delete()
+	await master_ask(master)
 
 async def master_congratulate(master):
 	emoji = random.choice(responses_emoji)
@@ -431,8 +443,11 @@ async def master_congratulate(master):
 async def master_snooze(master):
 	t = f"{int(snooze_time / 60)} minutes"
 	await bot.get_user(master["id"]).send(random.choice(responses_snooze).format(t))
+
+	response_cancel(master["id"])
 	await asyncio.sleep(snooze_time)
-	bot.loop.create_task(master_ask(master))
+
+	responses.append({master["id"], bot.loop.create_task(master_ask(master, late))})
 
 async def master_add(ctx):
 	greeting = random.choice(responses_greeting)
@@ -458,6 +473,12 @@ async def master_remove(ctx):
 	tasks = random.choice(responses_tasks)
 	await ctx.send(random.choice(responses_remove).format(greeting, activity, tasks))
 
+""" async def remove_last_message(master):
+	dm = bot.get_user(master["id"]).dm_channel
+	for message in dm.history():
+		if message.
+	pass
+ """
 def get_master(id):
 	for i in masters:
 		if i["id"] == id:
