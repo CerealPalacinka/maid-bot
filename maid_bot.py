@@ -447,7 +447,7 @@ async def master_snooze(master):
 	response_cancel(master["id"])
 	await asyncio.sleep(snooze_time)
 
-	responses.append({master["id"], bot.loop.create_task(master_ask(master, late))})
+	responses.append({master["id"], bot.loop.create_task(master_ask(master))})
 
 async def master_add(ctx):
 	greeting = random.choice(responses_greeting)
