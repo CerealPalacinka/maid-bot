@@ -309,7 +309,7 @@ async def update():
 			master["wait"] = True
 			data_save()
 
-			responses.append({master["id"], bot.loop.create_task(master_ask(master, late))})
+			responses.append([master["id"], bot.loop.create_task(master_ask(master, late))])
 
 		# continue loop after delta seconds
 		print(f"sleep for {delta}")
