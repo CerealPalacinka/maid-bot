@@ -309,7 +309,7 @@ async def update():
 			master["wait"] = True
 			data_save()
 
-			responses.append([master["id"], bot.loop.create_task(master_ask(master, late))])
+			response_create(master, late)
 
 		# continue loop after delta seconds
 		print(f"sleep for {delta}")
@@ -421,6 +421,12 @@ def response_cancel(master_id):
 			responses.remove(response)
 			break
 
+def response_create(master, late=False):
+	task = bot.loop.create_task(master_ask(master, late))
+	id = master["id"]
+	new_response = [id, task]
+	responses.append(new_response)
+
 async def master_ask(master, late=False):
 	index = master["index"]
 	sorry = ""
@@ -447,7 +453,7 @@ async def master_snooze(master):
 	response_cancel(master["id"])
 	await asyncio.sleep(snooze_time)
 
-	responses.append([master["id"], bot.loop.create_task(master_ask(master))])
+	response_create(master)
 
 async def master_add(ctx):
 	greeting = random.choice(responses_greeting)
