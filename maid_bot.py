@@ -269,7 +269,6 @@ async def on_reaction_add(reaction, user):
 async def update():
 	await bot.wait_until_ready()
 
-	alarms = []
 	while not bot.is_closed():
 
 		global date
@@ -285,6 +284,7 @@ async def update():
 		t = datetime.now().hour * 3600 + datetime.now().minute * 60 + datetime.now().second
 		delta = 86400 - t # time till midnight
 
+		alarms = []
 		# find smallest delta
 		for master in masters:
 			if (master["index"] < len(master["activities"]) and not master["wait"]):
