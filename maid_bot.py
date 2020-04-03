@@ -311,9 +311,10 @@ async def update():
 			print(f"alarm id:{master['id']} late: {late}")
 
 			master["wait"] = True
-			data_save()
 
 			response_create(master, late)
+
+		data_save()
 
 		# continue loop after delta seconds
 		print(f"sleep for {delta}")
@@ -550,6 +551,9 @@ def data_load():
 		date = datetime(int(y), int(m), int(d))
 
 		for i in jsondata["masters"]:
+			for master in masters:
+				if master == i:
+					print("duplicate master")
 			masters.append(i)
 
 		print("loaded data from json")
