@@ -41,6 +41,8 @@ responses_greeting = [
 	"whaddup dude!",
 	"whaddup nigga!",
 	"dude!",
+	"babe!",
+	"honey!",
 	"hello there!",
 	"greetings mortal!",
 	"ahoj moj!"
@@ -57,6 +59,7 @@ responses_ask = [
 	"{0} {2}did you do the thing already?",
 	"{0} {2}hope you didn't forgot to do the thing",
 	"{0} {2}hope you didn't forgot about the thing",
+	"{0} it's time for you to {1}!",
 	"{2}did you {1}?",
 	"{2}am here to remind you to {1}",
 	"{2}did you {1} already?",
@@ -68,6 +71,7 @@ responses_ask = [
 	"done now?",
 	"done?",
 	"vibe check 🔫",
+	"babe! it's 4pm, time for your dick flattening!",
 	"yes?"
 ]
 

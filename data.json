@@ -41,13 +41,18 @@
 					"name": "shower"
 				}
 			],
-			"index": 0,
-			"wait": true
+			"index": 7,
+			"wait": false
 		},
 		{
 			"id": 273156730911850496,
-			"activities": [],
-			"index": 0,
+			"activities": [
+				{
+					"time": 72000,
+					"name": "dick flattening"
+				}
+			],
+			"index": 1,
 			"wait": false
 		},
 		{
@@ -58,12 +63,7 @@
 		},
 		{
 			"id": 273868146878971915,
-			"activities": [
-				{
-					"time": 61200,
-					"name": "i want to die \ud83d\ude29"
-				}
-			],
+			"activities": [],
 			"index": 0,
 			"wait": false
 		},
@@ -75,8 +75,8 @@
 					"name": "sp\u00e1nok"
 				}
 			],
-			"index": 0,
-			"wait": true
+			"index": 1,
+			"wait": false
 		},
 		{
 			"id": 212002032624730112,
@@ -90,8 +90,8 @@
 					"name": "wake"
 				}
 			],
-			"index": 0,
-			"wait": true
+			"index": 2,
+			"wait": false
 		}
 	]
 }
