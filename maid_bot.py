@@ -47,6 +47,8 @@ responses_greeting = [
 	"whaddup dude!",
 	"whaddup nigga!",
 	"dude!",
+	"babe!",
+	"honey!",
 	"hello there!",
 	"greetings mortal!",
 	"ahoj moj!"
@@ -63,6 +65,7 @@ responses_ask = [
 	"{0} {2}did you do the thing already?",
 	"{0} {2}hope you didn't forgot to do the thing",
 	"{0} {2}hope you didn't forgot about the thing",
+	"{0} it's time for you to {1}!",
 	"{2}did you {1}?",
 	"{2}am here to remind you to {1}",
 	"{2}did you {1} already?",
@@ -74,6 +77,7 @@ responses_ask = [
 	"done now?",
 	"done?",
 	"vibe check 🔫",
+	"babe! it's 4pm, time for your dick flattening!",
 	"yes?"
 ]
 
@@ -247,6 +251,9 @@ async def on_ready():
 	# load all masters and their activities from json
 	await bot.change_presence(activity=discord.Game("with copy.deepcopy()"))
 	data_load()
+	
+	for master in masters:
+		master["wait"] = False
 
 	update_restart()
 	print("maid bot is ready.\n")
@@ -263,6 +270,9 @@ async def on_reaction_add(reaction, user):
 		if reaction.emoji == "✅": # iterate index
 			master["index"] = master["index"] + 1
 			master["wait"] = False
+
+			response_cancel(master["id"])
+
 			data_save()
 			update_restart()
 			await master_congratulate(master)
@@ -273,7 +283,6 @@ async def on_reaction_add(reaction, user):
 async def update():
 	await bot.wait_until_ready()
 
-	alarms = []
 	while not bot.is_closed():
 
 		global date
@@ -282,12 +291,14 @@ async def update():
 			for master in masters:
 				master["index"] = 0
 				master["wait"] = False
+				response_cancel(master["id"])
 			print("new day activities index reset")
 			data_save()
 
 		t = datetime.now().hour * 3600 + datetime.now().minute * 60 + datetime.now().second
 		delta = 86400 - t # time till midnight
 
+		alarms = []
 		# find smallest delta
 		for master in masters:
 			if (master["index"] < len(master["activities"]) and not master["wait"]):
@@ -310,10 +321,10 @@ async def update():
 			print(f"alarm id:{master['id']} late: {late}")
 
 			master["wait"] = True
-			data_save()
-			#response_wait(master, late)
-			bot.loop.create_task(master_ask(master, late))
-			# await master_ask(master, late)
+
+			response_create(master, late)
+
+		data_save()
 
 		# continue loop after delta seconds
 		print(f"sleep for {delta}")
@@ -439,9 +450,22 @@ async def stop(ctx):
 
 
 @atexit.register
-def exit_handler():
+async def exit_handler():
 	print("stopping maid bot.")
 
+
+def response_cancel(master_id):
+	for response in responses:
+		if response[0] == master_id:
+			response[1].cancel()
+			responses.remove(response)
+			break
+
+def response_create(master, late=False):
+	task = bot.loop.create_task(master_ask(master, late))
+	id = master["id"]
+	new_response = [id, task]
+	responses.append(new_response)
 
 async def master_ask(master, late=False):
 	index = master["index"]
@@ -455,9 +479,8 @@ async def master_ask(master, late=False):
 	await message.add_reaction("⏰")
 
 	await asyncio.sleep(snooze_time)
-	if index == master["index"]:
-		await message.delete()
-		await master_ask(master)
+	await message.delete()
+	await master_ask(master)
 
 
 async def master_congratulate(master):
@@ -468,8 +491,11 @@ async def master_congratulate(master):
 async def master_snooze(master):
 	t = f"{int(snooze_time / 60)} minutes"
 	await bot.get_user(master["id"]).send(random.choice(responses_snooze).format(t))
+
+	response_cancel(master["id"])
 	await asyncio.sleep(snooze_time)
-	bot.loop.create_task(master_ask(master))
+
+	response_create(master)
 
 
 async def master_add(ctx):
@@ -510,7 +536,6 @@ def get_wait(master, index):
 		if item[0] == master and item[1] == index:
 			return item
 	return None
-
 
 def get_master(id):
 	for i in masters:
@@ -579,6 +604,9 @@ def data_load():
 		date = datetime(int(y), int(m), int(d))
 
 		for i in jsondata["masters"]:
+			for master in masters:
+				if master == i:
+					print("duplicate master")
 			masters.append(i)
 
 		print("loaded data from json")
