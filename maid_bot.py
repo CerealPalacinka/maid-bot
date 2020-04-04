@@ -9,7 +9,8 @@ from discord.ext import commands
 from datetime import datetime
 from copy import deepcopy
 
-jsonfile = "data.json"
+file_data = "data.json"
+file_responses = "responses.json"
 token = "NDk0NTU5MDU3MTUyMzExMjk2.XntWMA.tdBff92dd0O5I-4mMR_3MxJw69A"
 prefix = "."
 
@@ -22,228 +23,25 @@ responses = []
 date = None
 
 masters = []
-master_template = {"id":0, "activities":[], "index":0, "wait":False}
-activity_template = {"time":0, "name":""}
+master_template = dict(id=0, activities=[], index=0, wait=False)
+activity_template = dict(time=0, name="")
 
 snooze_time = 600
 late_threshold_time = 300
 
-responses_greeting = [
-	"nyaa!",
-	"nyaa! nyaa!",
-	"nyaa! nyaa! nyaa!",
-	"nyaa! nyaa! nyaa! nyaa!",
-	"nyaa! nyaa! nyaa! nyaa! nyaa!",
-	"master!",
-	"ma... master!",
-	"ohayoo!",
-	"domo!",
-	"hey!",
-	"hey loser!",
-	"yo!",
-	"yo nigga!",
-	"whaddup!",
-	"whaddup zoomer!",
-	"whaddup dude!",
-	"whaddup nigga!",
-	"dude!",
-	"babe!",
-	"honey!",
-	"hello there!",
-	"greetings mortal!",
-	"ahoj moj!"
-]
-
-responses_ask = [
-	"{0} {2}did you {1}?",
-	"{0} {2}am here to remind you to {1}",
-	"{0} {2}did you {1} already?",
-	"{0} {2}please tell me that you {1} already",
-	"{0} {2}please tell me that you didn't forgot to {1}",
-	"{0} {2}am here to remind you to do the thing",
-	"{0} {2}am here to remind you about the thing",
-	"{0} {2}did you do the thing already?",
-	"{0} {2}hope you didn't forgot to do the thing",
-	"{0} {2}hope you didn't forgot about the thing",
-	"{0} it's time for you to {1}!",
-	"{2}did you {1}?",
-	"{2}am here to remind you to {1}",
-	"{2}did you {1} already?",
-	"{2}please tell me that you {1} already",
-	"{2}please tell me that you didn't forgot to {1}",
-	"{2}did you do the thing already?",
-	"are you done now?",
-	"are you done?",
-	"done now?",
-	"done?",
-	"vibe check 🔫",
-	"babe! it's 4pm, time for your dick flattening!",
-	"yes?"
-]
-
-responses_late = [
-	"sorry for being late!",
-	"sowwy fow being wate!",
-	"am so sorry for being late!",
-	"am sorry for being so late!",
-	"yes am late, sorry",
-	"yes am late, am sorry",
-	"please forgive me for being so late!",
-	"please forgive me for being so late! 🙏",
-	"please forgive me for being so late! it won't happen again i swear!",
-	"forgive me for being so late!",
-	"forgive me for being late!",
-	"don't ask me why am late",
-	"sorry to keep you waiting!",
-	"sorry to have kept you waiting!",
-	"sorry for keeping you waiting!",
-	"sorry for having kept you waiting!",
-	"kept ya waitin' huh?"
-]
-
-responses_congrats = [
-	"omedetou {}",
-	"congratulations {}",
-	"congrats {}",
-	".{}",
-	"quieres {}",
-	"bro {}",
-	"bruh {}",
-	"my man {}",
-	"nice dick {}",
-	"nice cock {}",
-	"conglaturations {}",
-	"yo, yoooo!!! {}",
-	"yay!!! {}",
-	"am glad you're doing ok! {}",
-	"am glad! {}",
-	"keep it up man! {}",
-	"keep it up! {}",
-	"ok {}",
-	"good job my guy",
-]
-
-responses_emoji = [
-	"👏",
-	"👏👏",
-	"👏👏👏",
-	"👏👏👏👏",
-	"👏👏👏👏👏",
-	"👏👏👏👏👏👏",
-	""
-]
-
-responses_snooze = [
-	"i'll come back in {}",
-	"i'll come back in like {}",
-	"i'll come back in about {}",
-	"i'll be back in {}",
-	"i'll be back in like {}",
-	"i'll be back in about {}",
-	"i'll give you {}",
-	"i'll give you like {}",
-	"i'll give you like {}, make it quick",
-	"i'll be back 🤖",
-	"ama be back in {}",
-	"ama be back in like {}",
-	"ama be back in about {}",
-	"i back in {}",
-	"wait {}",
-	"you better finish before i come back",
-	"you better be done when i come back",
-	"whatever, not like i care",
-	"whatever",
-	"go die",
-	"die"
-]
-
-responses_add = [
-	"{0} i added {1} to your {2}! {3}",
-	"{0} i have added {1} to your {2}! {3}",
-	"{0} i added {1} to your {2}!",
-	"{0} i have added {1} to your {2}!",
-	"i added {1} to your {2}! {3}",
-	"i have added {1} to your {2}! {3}",
-	"i added {1} to your {2}!",
-	"i have added {1} to your {2}!"
-]
-
-responses_activity = [
-	"this",
-	"this activity",
-	"this task",
-	"this reminder",
-	"the activity",
-	"the task",
-	"the reminder"
-]
-
-responses_tasks = [
-	"list",
-	"list of activities",
-	"list of tasks",
-	"list of reminders"
-]
-
-responses_end = [
-	"thank you for your service!",
-	"arigato gozaimashita!",
-	"thank you!",
-	"arigato!",
-	"thanks!",
-	"thank",
-	"happy?",
-	"feel free to use me again",
-	"feel free to use me again 😏",
-	"me too thanks",
-	"me too"
-]
-
-responses_list = [
-	"{0} here is your {1}!{2}",
-	"{0} here is your {1}! {3}{2}",
-	"here is your {1} {0}{2}",
-	"here is your {1}! {3}{2}",
-	"here is your {1}!{2}"
-]
-
-responses_nolist = [
-	"{0} sorry but there doesn't seem to be anything on your {1}",
-	"{0} sorry but there doesn't seem to be anything",
-	"{0} sorry but there isn't anything on your {1}",
-	"{0} sorry but there isn't anything",
-	"{0} sorry but there doesn't seem to be anything on your {1}, please conscider creating a reminder!",
-	"{0} sorry but there doesn't seem to be anything on your {1}, please conscider creating a reminder! please you won't regret it i swear!",
-	"{0} sorry but there doesn't seem to be anything on your {1}, please conscider creating a reminder! please you won't regret it i swear! onegai!",
-	"{0} sorry but there doesn't seem to be anything, please conscider creating a reminder!",
-	"{0} sorry but there isn't anything on your {1}, please conscider creating a reminder!",
-	"{0} sorry but there isn't anything, please conscider creating a reminder!",
-	"sorry but there doesn't seem to be anything on your {1}",
-	"sorry but there doesn't seem to be anything",
-	"sorry but there isn't anything on your {1}",
-	"sorry but there isn't anything",
-	"sorry, create a reminder first",
-	"create a reminder first",
-	"create a reminder first, you dumbass",
-	"create a reminder first, you smartass",
-	"don't waste my time, you don't have a list",
-	"don't waste my time, you knew you don't have a list",
-	"don't waste my time, you know you don't have anything on your list",
-	"don't waste my time, you know that you don't have anything on your list",
-	"fuck off"
-]
-
-responses_remove = [
-	"{0} i have removed {1} from your {2}!",
-	"{0} i removed {1} from your {2}!",
-	"i have removed {1} from your {2}!",
-	"i removed {1} from your {2}!",
-	"i have removed {1} from your {2} {0}",
-	"i removed {1} from your {2} {0}",
-	"done! {0}",
-	"done {0}",
-	"done!"
-]
+responses_greeting = []
+responses_ask = []
+responses_late = []
+responses_congrats = []
+responses_emoji = []
+responses_snooze = []
+responses_add = []
+responses_activity = []
+responses_tasks = []
+responses_end = []
+responses_list = []
+responses_nolist = []
+responses_remove = []
 
 
 @bot.event
@@ -251,7 +49,7 @@ async def on_ready():
 	# load all masters and their activities from json
 	await bot.change_presence(activity=discord.Game("with copy.deepcopy()"))
 	data_load()
-	
+
 	for master in masters:
 		master["wait"] = False
 
@@ -267,7 +65,7 @@ async def on_reaction_add(reaction, user):
 		await reaction.message.remove_reaction("⏰", bot.user)
 
 		master = get_master(user.id)
-		if reaction.emoji == "✅": # iterate index
+		if reaction.emoji == "✅":  # iterate index
 			master["index"] = master["index"] + 1
 			master["wait"] = False
 
@@ -276,7 +74,7 @@ async def on_reaction_add(reaction, user):
 			data_save()
 			update_restart()
 			await master_congratulate(master)
-		elif reaction.emoji == "⏰": # ask again after snooze
+		elif reaction.emoji == "⏰":  # ask again after snooze
 			bot.loop.create_task(master_snooze(master))
 
 
@@ -296,14 +94,14 @@ async def update():
 			data_save()
 
 		t = datetime.now().hour * 3600 + datetime.now().minute * 60 + datetime.now().second
-		delta = 86400 - t # time till midnight
+		delta = 86400 - t  # time till midnight
 
 		alarms = []
 		# find smallest delta
 		for master in masters:
-			if (master["index"] < len(master["activities"]) and not master["wait"]):
+			if master["index"] < len(master["activities"]) and not master["wait"]:
 				master_delta = master["activities"][master["index"]]["time"] - t
-				
+
 				print(f"id:{master['id']}, master_delta: {master_delta}, delta:{delta}")
 				if master_delta > 0:
 					if master_delta < delta:
@@ -333,7 +131,7 @@ async def update():
 
 def update_restart(): # restart update loop
 	global update_task
-	if update_task != None:
+	if update_task is not None:
 		update_task.cancel()
 	update_task = bot.loop.create_task(update())
 
@@ -357,7 +155,7 @@ async def add(ctx, *args):  # add activity command, argument time of day in HH:M
 		if i["id"] == id:
 			master = i
 			break
-	
+
 	# if user isn't a master, create a new master from a template and assign users id
 	if master is None:
 		master = deepcopy(master_template)
@@ -368,7 +166,7 @@ async def add(ctx, *args):  # add activity command, argument time of day in HH:M
 	# add a new activity and save
 	activity_add(master, ctx, args)
 	data_save()
-	
+
 	update_restart()
 
 	await master_add(ctx)
@@ -395,18 +193,18 @@ async def remove(ctx, index:int):
 		if master["index"] >= index:
 			length = len(master["activities"])
 
-	if master != None and length > 0:
+	if master is not None and length > 0:
 		index %= length
 		if master["index"] >= index and master["index"] != 0: # set back index if removed activity already happend
 			master["index"] -= 1
-		activity = master["activities"].pop(index)
+		master["activities"].pop(index)
 		data_save()
 
 		update_restart()
-		
+
 		await master_remove(ctx)
 	else:
-		await master_nolist(ctx) 
+		await master_nolist(ctx)
 
 
 @bot.command()
@@ -417,10 +215,10 @@ async def removeall(ctx):
 		data_save()
 
 		update_restart()
-		
+
 		await master_remove(ctx)
 	else:
-		await master_nolist(ctx) 
+		await master_nolist(ctx)
 
 
 @bot.command()
@@ -446,7 +244,7 @@ async def stop(ctx):
 	if ctx.message.author.id == 204981328305848330 or ctx.message.author.id == 270603696683876352:
 		bot.loop.stop()
 	else:
-		await ctx.send("nice try smartass")
+		await ctx.send("nice try smartest")
 
 
 @atexit.register
@@ -550,7 +348,7 @@ def activity_add(master, ctx, args):
 
 	t = time_to_seconds(args[0])
 	ask = t > datetime.now().hour * 3600 + datetime.now().minute * 60
-	
+
 	new_activity["time"] = t
 	new_activity["name"] = " ".join(args[1:])
 
@@ -561,7 +359,7 @@ def activity_add(master, ctx, args):
 			break
 
 	# add activity to the master activities array
-	if index != None:
+	if index is not None:
 		if master["index"] > index or master["index"] == index and not ask:
 			master["index"] += 1
 		master["activities"].insert(i, new_activity)
@@ -586,30 +384,49 @@ def seconds_to_time(seconds):
 
 
 def data_save():
-	save_data = {"date":date.strftime("%Y/%m/%d"), "masters":masters}
+	out = [date.year, date.month, date.day]
+	save_data = dict(date=out, masters=masters)
 
-	with open(jsonfile, 'w') as fp:
+	with open(file_data, 'w') as fp:
 		json.dump(save_data, fp, indent="\t")
 		print("saved data to json")
 
 
 def data_load():
-	with open(jsonfile) as fp:
+	with open(file_data) as fp:
 		jsondata = json.load(fp)
 
 		global date
 
-		date_string = jsondata["date"]
-		y, m, d = date_string.split("/")
-		date = datetime(int(y), int(m), int(d))
+		date_list = jsondata["date"]
+		y, m, d = date_list[0], date_list[1], date_list[2]
+		date = datetime(y, m, d)
 
 		for i in jsondata["masters"]:
 			for master in masters:
 				if master == i:
 					print("duplicate master")
-			masters.append(i)
+			if i not in masters:
+				masters.append(i)
 
-		print("loaded data from json")
+	with open(file_responses) as fp:
+		json_responses = json.load(fp)
+
+		responses_greeting = json_responses["greeting"]
+		responses_ask = json_responses["ask"]
+		responses_late = json_responses["late"]
+		responses_congrats = json_responses["congrats"]
+		responses_emoji = json_responses["emoji"]
+		responses_snooze = json_responses["snooze"]
+		responses_add = json_responses["add"]
+		responses_activity = json_responses["activity"]
+		responses_tasks = json_responses["tasks"]
+		responses_end = json_responses["end"]
+		responses_list = json_responses["list"]
+		responses_nolist = json_responses["nolist"]
+		responses_remove = json_responses["remove"]
+
+	print("loaded data from json")
 
 
 bot.run(token)
