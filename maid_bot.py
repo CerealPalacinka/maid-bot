@@ -4,10 +4,12 @@ import time
 import json
 import asyncio
 import random
+import linkdatabase
 
 from discord.ext import commands
 from datetime import datetime
 from copy import deepcopy
+
 
 file_data = "data.json"
 file_responses = "responses.json"
@@ -42,7 +44,6 @@ responses_end = []
 responses_list = []
 responses_nolist = []
 responses_remove = []
-
 
 @bot.event
 async def on_ready():
@@ -143,6 +144,14 @@ async def bully(ctx):  # calls all masters for help
 		if not ctx.message.author.id == i["id"]:
 			users.append("<@{}>".format(i["id"]))
 	await ctx.send("nyaa!! {} 😿 help me pls!!!".format(random.choice(users)))
+
+
+@bot.command()
+async def img(ctx):
+	embed = discord.Embed()
+	embed.set_image(url = random.choice(linkdatabase.armpitst))
+	await ctx.send(embed=embed)
+	pass
 
 
 @bot.command()
