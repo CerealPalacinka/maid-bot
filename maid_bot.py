@@ -141,9 +141,9 @@ def update_restart(): # restart update loop
 async def bully(ctx):  # calls all masters for help
 	users = []
 	for i in masters:
-		if not ctx.message.author.id == i["id"]:
-			users.append("<@{}>".format(i["id"]))
-	await ctx.send("nyaa!! {} 😿 help me pls!!!".format(random.choice(users)))
+		if ctx.message.author.id != i["id"]:
+			users.append(f"<@{i["id"]}>")
+	await ctx.send(f"nyaa!! {random.choice(users)} 😿 help me pls!!!")
 
 
 @bot.command()
