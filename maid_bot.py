@@ -1,3 +1,4 @@
+import os
 import discord
 import atexit
 import time
@@ -9,14 +10,14 @@ import linkdatabase
 from discord.ext import commands
 from datetime import datetime
 from copy import deepcopy
+from dotenv import load_dotenv
 
 
 file_data = "data.json"
 file_responses = "responses.json"
-token = "NDk0NTU5MDU3MTUyMzExMjk2.XntWMA.tdBff92dd0O5I-4mMR_3MxJw69A"
-prefix = "."
 
-bot = commands.Bot(command_prefix=prefix)
+load_dotenv()
+bot = commands.Bot(command_prefix=os.getenv('DISCORD_PREFIX'))
 
 update_task = None
 
@@ -142,7 +143,7 @@ async def bully(ctx):  # calls all masters for help
 	users = []
 	for i in masters:
 		if ctx.message.author.id != i["id"]:
-			users.append(f"<@{i["id"]}>")
+			users.append(f"<@{i['id']}>")
 	await ctx.send(f"nyaa!! {random.choice(users)} 😿 help me pls!!!")
 
 
@@ -438,4 +439,4 @@ def data_load():
 	print("loaded data from json")
 
 
-bot.run(token)
+bot.run(os.getenv('DISCORD_TOKEN'))
