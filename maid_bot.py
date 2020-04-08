@@ -144,11 +144,12 @@ async def bully(ctx):  # calls all masters for help
 	for i in masters:
 		if ctx.message.author.id != i["id"]:
 			users.append(f"<@{i['id']}>")
+			print(users)
 	await ctx.send(f"nyaa!! {random.choice(users)} 😿 help me pls!!!")
 
-
-@bot.command()
+@bot.command(name='img')
 async def img(ctx):
+	await ctx.message.delete()
 	embed = discord.Embed()
 	embed.set_image(url = random.choice(linkdatabase.armpitst))
 	await ctx.send(embed=embed)
@@ -184,6 +185,7 @@ async def add(ctx, *args):  # add activity command, argument time of day in HH:M
 
 @bot.command(aliases=["list", "activities", "tasks"])
 async def _list(ctx):
+
 	master = get_master(ctx.message.author.id)
 	if master is not None and len(master["activities"]) > 0:
 		items = []
@@ -318,6 +320,8 @@ async def master_list(ctx, text):
 	greeting = random.choice(responses_greeting)
 	tasks = random.choice(responses_tasks)
 	end = random.choice(responses_end)
+	await ctx.message.delete()
+	await ctx.send(f'<@{ctx.message.author.id}>')
 	await ctx.send(random.choice(responses_list).format(greeting, tasks, text, end))
 
 
@@ -421,22 +425,21 @@ def data_load():
 
 	with open(file_responses) as fp:
 		json_responses = json.load(fp)
-
+		global responses_greeting, responses_remove, responses_nolist, responses_list,responses_end, responses_tasks, responses_activity, responses_snooze,responses_emoji, responses_congrats
 		responses_greeting = json_responses["greeting"]
-		responses_ask = json_responses["ask"]
-		responses_late = json_responses["late"]
+		responses_ask      = json_responses["ask"]
+		responses_late     = json_responses["late"]
 		responses_congrats = json_responses["congrats"]
-		responses_emoji = json_responses["emoji"]
-		responses_snooze = json_responses["snooze"]
-		responses_add = json_responses["add"]
+		responses_emoji    = json_responses["emoji"]
+		responses_snooze   = json_responses["snooze"]
+		responses_add      = json_responses["add"]
 		responses_activity = json_responses["activity"]
-		responses_tasks = json_responses["tasks"]
-		responses_end = json_responses["end"]
-		responses_list = json_responses["list"]
-		responses_nolist = json_responses["nolist"]
-		responses_remove = json_responses["remove"]
+		responses_tasks    = json_responses["tasks"]
+		responses_end      = json_responses["end"]
+		responses_list     = json_responses["list"]
+		responses_nolist   = json_responses["nolist"]
+		responses_remove   = json_responses["remove"]
 
 	print("loaded data from json")
-
 
 bot.run(os.getenv('DISCORD_TOKEN'))
