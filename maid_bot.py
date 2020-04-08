@@ -155,6 +155,9 @@ async def img(ctx):
 	await ctx.send(embed=embed)
 	pass
 
+@bot.command()
+async def test (ctx, _time:str, *_name:str):
+	await ctx.send(f'time: {_time} name: {" ".join(_name)}')
 
 @bot.command()
 async def add(ctx, *args):  # add activity command, argument time of day in HH:MM and name of the activity
@@ -188,12 +191,18 @@ async def _list(ctx):
 
 	master = get_master(ctx.message.author.id)
 	if master is not None and len(master["activities"]) > 0:
-		items = []
-		for i in range(0, len(master["activities"])):
-			items.append("{}. {}".format(i, activity_text(master["activities"][i])))
-		text = "\n```fix\n{}```".format('\n'.join(items))
-		await master_list(ctx, text)
-	else:
+
+		# start with masters name
+		items = [ctx.message.author.display_name]
+
+		# append all masters activities
+		for i in range(0, len(master["activities"])): 
+			items.append(f'{i}. {seconds_to_time(activity["time"])} {activity["name"]}')
+
+		# format into code block
+		n = '\n'
+		await master_list(ctx, f'{n}```fix{n}{n.join(items)}```')
+	else: 
 		await master_nolist(ctx)
 
 
@@ -321,7 +330,6 @@ async def master_list(ctx, text):
 	tasks = random.choice(responses_tasks)
 	end = random.choice(responses_end)
 	await ctx.message.delete()
-	await ctx.send(f'<@{ctx.message.author.id}>')
 	await ctx.send(random.choice(responses_list).format(greeting, tasks, text, end))
 
 
@@ -382,11 +390,6 @@ def activity_add(master, ctx, args):
 			master["index"] += 1
 		master["activities"].append(new_activity)
 	print (f"added new activity for master {master['id']} {new_activity}")
-
-
-def activity_text(activity):
-	return "{} {}".format(seconds_to_time(activity["time"]), activity["name"])
-
 
 def time_to_seconds(time_string):
 	h, m = time_string.split(":")
