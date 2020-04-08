@@ -55,8 +55,8 @@ async def on_reaction_add(reaction, user):
 		await reaction.message.remove_reaction("⏰", bot.user)
 
 		master = get_master(user.id)
-		if reaction.emoji is "✅":  # iterate index
-			master["index"] = master["index"] + 1
+		if reaction.emoji == "✅":  # iterate index
+			master["index"] += 1
 			master["wait"] = False
 
 			reminder_cancel(master["id"])
@@ -64,7 +64,7 @@ async def on_reaction_add(reaction, user):
 			data_save()
 			update_restart()
 			await master_congratulate(master)
-		elif reaction.emoji is "⏰":  # ask again after snooze
+		elif reaction.emoji == "⏰":  # ask again after snooze
 			bot.loop.create_task(master_snooze(master))
 
 
@@ -74,7 +74,7 @@ async def update():
 	while not bot.is_closed():
 
 		global date
-		if date.day is not datetime.now().day:
+		if date.day != datetime.now().day:
 			date = datetime.now()
 			for master in masters:
 				master["index"] = 0
@@ -130,7 +130,7 @@ def update_restart(): # restart update loop
 async def bully(ctx):  # calls all masters for help
 	users = []
 	for i in masters:
-		if ctx.message.author.id is not i["id"]:
+		if ctx.message.author.id != i["id"]:
 			users.append(f"<@{i['id']}>")
 			print(users)
 	await ctx.send(f"nyaa!! {random.choice(users)} 😿 help me pls!!!")
@@ -199,7 +199,7 @@ async def remove(ctx, index:int):
 
 	if master is not None and length > 0:
 		index %= length
-		if master["index"] >= index and master["index"] is not 0: # set back index if removed activity already happend
+		if master["index"] >= index and master["index"] != 0: # set back index if removed activity already happend
 			master["index"] -= 1
 		master["activities"].pop(index)
 		data_save()
@@ -258,7 +258,7 @@ async def exit_handler():
 
 def reminder_cancel(master_id):
 	for reminder in reminders:
-		if reminder[0] is master_id:
+		if reminder[0] == master_id:
 			reminder[1].cancel()
 			reminders.remove(reminder)
 			break
@@ -336,7 +336,7 @@ async def master_remove(ctx):
 
 def get_master(id):
 	for master in masters:
-		if master["id"] is id:
+		if master["id"] == id:
 			return master
 	return None
 
@@ -359,11 +359,11 @@ def activity_add(master, ctx, args):
 
 	# add activity to the master activities array
 	if index is not None:
-		if master["index"] > index or master["index"] is index and not ask:
+		if master["index"] > index or master["index"] == index and not ask:
 			master["index"] += 1
 		master["activities"].insert(i, new_activity)
 	else:
-		if master["index"] is len(master["activities"]) and not ask:
+		if master["index"] == len(master["activities"]) and not ask:
 			master["index"] += 1
 		master["activities"].append(new_activity)
 	print (f"added new activity for master {master['id']} {new_activity}")
