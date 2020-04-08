@@ -2,7 +2,7 @@
 	"date": [
 		2020,
 		4,
-		8
+		9
 	],
 	"masters": [
 		{
@@ -45,17 +45,12 @@
 					"name": "shower"
 				}
 			],
-			"index": 7,
+			"index": 0,
 			"wait": false
 		},
 		{
 			"id": 273156730911850496,
-			"activities": [
-				{
-					"time": 72000,
-					"name": "dick flattening"
-				}
-			],
+			"activities": [],
 			"index": 0,
 			"wait": false
 		},
@@ -94,8 +89,8 @@
 					"name": "wake"
 				}
 			],
-			"index": 2,
-			"wait": false
+			"index": 0,
+			"wait": true
 		}
 	]
 }

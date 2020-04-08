@@ -16,12 +16,12 @@ from dotenv import load_dotenv
 load_dotenv()
 bot = commands.Bot(command_prefix=os.getenv('DISCORD_PREFIX'))
 
-FP_DATA = "data.json"
-FP_RESPONSES = "responses.json"
+FP_DATA = 'data.json'
+FP_RESPONSES = 'responses.json'
 
 RESPONSES = dict()
 TEMP_MASTER = dict(id=0, activities=[], index=0, wait=False)
-TEMP_ACTIVITY = dict(time=0, name="")
+TEMP_ACTIVITY = dict(time=0, name='')
 
 SNOOZE_TIME = 600
 LATE_THRESHOLD_TIME = 300
@@ -69,8 +69,6 @@ async def on_reaction_add(reaction, user):
 
 
 async def update():
-	await bot.wait_until_ready()
-
 	while not bot.is_closed():
 
 		global date
@@ -83,7 +81,7 @@ async def update():
 			print("new day activities index reset")
 			data_save()
 
-		t = datetime.now().hour * 3600 + datetime.now().minute * 60 + datetime.now().second
+		t = get_seconds()
 		delta = 86400 - t  # time till midnight
 
 		alarms = []
@@ -119,21 +117,21 @@ async def update():
 		await asyncio.sleep(delta)
 
 
-def update_restart(): # restart update loop
+def update_restart():  # restart update loop
 	global update_task
 	if update_task is not None:
 		update_task.cancel()
 	update_task = bot.loop.create_task(update())
 
 
-@bot.command()
-async def bully(ctx):  # calls all masters for help
+@bot.command(help='i wont forgive you if u use this')
+async def bully(ctx):
 	users = []
 	for i in masters:
 		if ctx.message.author.id != i["id"]:
-			users.append(f"<@{i['id']}>")
+			users.append(f'<@{i["id"]}>')
 			print(users)
-	await ctx.send(f"nyaa!! {random.choice(users)} 😿 help me pls!!!")
+	await ctx.send(f'nyaa!! {random.choice(users)} 😿 help me pls!!!')
 
 
 @bot.command(name='img')
@@ -145,8 +143,8 @@ async def img(ctx):
 	pass
 
 
-@bot.command()
-async def add(ctx, *args):  # add activity command, argument time of day in HH:MM and name of the activity
+@bot.command(help='adds a reminder to your list \nfor best result use imperative mood', usage='08:00 make coffee')
+async def add(ctx, _time:str, *_name:str):
 	# users id
 	id = ctx.message.author.id
 
@@ -160,7 +158,7 @@ async def add(ctx, *args):  # add activity command, argument time of day in HH:M
 		print(f"created new master with id {id}")
 
 	# add a new activity and save
-	activity_add(master, ctx, args)
+	activity_add(master, ctx, _time, _name)
 	data_save()
 
 	update_restart()
@@ -168,7 +166,7 @@ async def add(ctx, *args):  # add activity command, argument time of day in HH:M
 	await master_add(ctx)
 
 
-@bot.command(aliases=["list", "activities", "tasks"])
+@bot.command(name='list', help='shows your list of reminders')
 async def _list(ctx):
 
 	master = get_master(ctx.message.author.id)
@@ -189,7 +187,7 @@ async def _list(ctx):
 		await master_nolist(ctx)
 
 
-@bot.command()
+@bot.command(help='removes element from your list by index')
 async def remove(ctx, index:int):
 	master = get_master(ctx.message.author.id)
 	if master is not None and len(master["activities"]) > 0:
@@ -199,7 +197,7 @@ async def remove(ctx, index:int):
 
 	if master is not None and length > 0:
 		index %= length
-		if master["index"] >= index and master["index"] != 0: # set back index if removed activity already happend
+		if master["index"] > index and master["index"] != 0:  # set back index if removed activity already happend
 			master["index"] -= 1
 		master["activities"].pop(index)
 		data_save()
@@ -211,7 +209,7 @@ async def remove(ctx, index:int):
 		await master_nolist(ctx)
 
 
-@bot.command()
+@bot.command(help='clears your list')
 async def removeall(ctx):
 	master = get_master(ctx.message.author.id)
 	if master is not None and len(master["activities"]) > 0:
@@ -223,24 +221,6 @@ async def removeall(ctx):
 		await master_remove(ctx)
 	else:
 		await master_nolist(ctx)
-
-
-@bot.command()
-async def intro(ctx, id: int):
-	if ctx.message.author.id == 204981328305848330:
-		await bot.get_channel(id).send(
-			"su... sumimasendesuka!\n"
-			"am your new maid bot! yoroshiku onegaishimasu!\n"
-			"my puwpose is to remind you to do things on a daily basis!\n"
-			"if u want to use me😏, type '.add <time of day in HH:MM format> "
-			"<description of what you want to do at that specific time that you want to be remided of>'\n"
-			"sexample: .add 09:30 make coffee\n"
-			"and after that ill sednd you a dm at 9:30 to remind you to make a coffeee\n"
-			"with the comand .list you can keep trac of all your reminders,"
-			" if you want to remove a reminder just look up the index of the"
-			" reminder you want to delet with .list, "
-			"and type '.remove <index of ther eminder u want to annihilate>' an dpress enter.\n"
-			"am i cleare with everyone? u don't need to use my services, but please consciddre\nthanky ou for having me!")
 
 
 @bot.command()
@@ -311,7 +291,7 @@ async def master_add(ctx):
 
 
 async def master_list(ctx, text):
-	if ctx.guild is not None: # delete users message unless in DM channel
+	if ctx.guild is not None:  # delete users message unless in DM channel
 		await ctx.message.delete()
 
 	greeting = random.choice(RESPONSES['greeting'])
@@ -341,15 +321,15 @@ def get_master(id):
 	return None
 
 
-def activity_add(master, ctx, args):
+def activity_add(master, ctx, _time, _name):
 	# create a new activity from a template
 	new_activity = deepcopy(TEMP_ACTIVITY)
 
-	t = time_to_seconds(args[0])
-	ask = t > datetime.now().hour * 3600 + datetime.now().minute * 60
+	t = time_to_seconds(_time)
+	ask = t > get_seconds()
 
 	new_activity["time"] = t
-	new_activity["name"] = " ".join(args[1:])
+	new_activity["name"] = " ".join(_name)
 
 	index = None
 	for i in range(0, len(master["activities"])):
@@ -376,6 +356,10 @@ def time_to_seconds(time_string):
 
 def seconds_to_time(seconds):
 	return time.strftime("%H:%M", time.gmtime(seconds))
+
+
+def get_seconds():
+	return datetime.now().hour * 3600 + datetime.now().minute * 60 + datetime.now().second
 
 
 def data_save():
