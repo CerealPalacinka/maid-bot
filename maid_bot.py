@@ -196,7 +196,8 @@ async def _list(ctx):
 		items = [ctx.message.author.display_name]
 
 		# append all masters activities
-		for i in range(0, len(master["activities"])): 
+		for i in range(0, len(master["activities"])):
+			activity = master["activities"][i]
 			items.append(f'{i}. {seconds_to_time(activity["time"])} {activity["name"]}')
 
 		# format into code block
