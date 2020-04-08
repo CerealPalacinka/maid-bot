@@ -77,14 +77,10 @@
 				{
 					"time": 0,
 					"name": "sp\u00e1nok"
-				},
-				{
-					"time": 18000,
-					"name": "dick"
 				}
 			],
-			"index": 0,
-			"wait": true
+			"index": 1,
+			"wait": false
 		},
 		{
 			"id": 212002032624730112,
@@ -98,8 +94,8 @@
 					"name": "wake"
 				}
 			],
-			"index": 0,
-			"wait": true
+			"index": 2,
+			"wait": false
 		}
 	]
 }

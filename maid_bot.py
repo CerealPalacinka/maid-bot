@@ -13,38 +13,26 @@ from copy import deepcopy
 from dotenv import load_dotenv
 
 
-file_data = "data.json"
-file_responses = "responses.json"
-
 load_dotenv()
 bot = commands.Bot(command_prefix=os.getenv('DISCORD_PREFIX'))
 
-update_task = None
+FP_DATA = "data.json"
+FP_RESPONSES = "responses.json"
 
-responses = []
+RESPONSES = dict()
+TEMP_MASTER = dict(id=0, activities=[], index=0, wait=False)
+TEMP_ACTIVITY = dict(time=0, name="")
+
+SNOOZE_TIME = 600
+LATE_THRESHOLD_TIME = 300
 
 date = None
 
+update_task = None
+reminders = []
+
 masters = []
-master_template = dict(id=0, activities=[], index=0, wait=False)
-activity_template = dict(time=0, name="")
 
-snooze_time = 600
-late_threshold_time = 300
-
-responses_greeting = []
-responses_ask = []
-responses_late = []
-responses_congrats = []
-responses_emoji = []
-responses_snooze = []
-responses_add = []
-responses_activity = []
-responses_tasks = []
-responses_end = []
-responses_list = []
-responses_nolist = []
-responses_remove = []
 
 @bot.event
 async def on_ready():
@@ -67,16 +55,16 @@ async def on_reaction_add(reaction, user):
 		await reaction.message.remove_reaction("⏰", bot.user)
 
 		master = get_master(user.id)
-		if reaction.emoji == "✅":  # iterate index
+		if reaction.emoji is "✅":  # iterate index
 			master["index"] = master["index"] + 1
 			master["wait"] = False
 
-			response_cancel(master["id"])
+			reminder_cancel(master["id"])
 
 			data_save()
 			update_restart()
 			await master_congratulate(master)
-		elif reaction.emoji == "⏰":  # ask again after snooze
+		elif reaction.emoji is "⏰":  # ask again after snooze
 			bot.loop.create_task(master_snooze(master))
 
 
@@ -86,12 +74,12 @@ async def update():
 	while not bot.is_closed():
 
 		global date
-		if date.day != datetime.now().day:
+		if date.day is not datetime.now().day:
 			date = datetime.now()
 			for master in masters:
 				master["index"] = 0
 				master["wait"] = False
-				response_cancel(master["id"])
+				reminder_cancel(master["id"])
 			print("new day activities index reset")
 			data_save()
 
@@ -116,13 +104,13 @@ async def update():
 		for alarm in alarms:
 			# is bot late to alert master
 			master = alarm[0]
-			late = abs(alarm[1]) > late_threshold_time
+			late = abs(alarm[1]) > LATE_THRESHOLD_TIME
 
 			print(f"alarm id:{master['id']} late: {late}")
 
 			master["wait"] = True
 
-			response_create(master, late)
+			reminder_create(master, late)
 
 		data_save()
 
@@ -142,10 +130,11 @@ def update_restart(): # restart update loop
 async def bully(ctx):  # calls all masters for help
 	users = []
 	for i in masters:
-		if ctx.message.author.id != i["id"]:
+		if ctx.message.author.id is not i["id"]:
 			users.append(f"<@{i['id']}>")
 			print(users)
 	await ctx.send(f"nyaa!! {random.choice(users)} 😿 help me pls!!!")
+
 
 @bot.command(name='img')
 async def img(ctx):
@@ -155,24 +144,17 @@ async def img(ctx):
 	await ctx.send(embed=embed)
 	pass
 
-@bot.command()
-async def test (ctx, _time:str, *_name:str):
-	await ctx.send(f'time: {_time} name: {" ".join(_name)}')
 
 @bot.command()
 async def add(ctx, *args):  # add activity command, argument time of day in HH:MM and name of the activity
 	# users id
 	id = ctx.message.author.id
 
-	master = None
-	for i in masters:
-		if i["id"] == id:
-			master = i
-			break
+	master = get_master(id)
 
 	# if user isn't a master, create a new master from a template and assign users id
 	if master is None:
-		master = deepcopy(master_template)
+		master = deepcopy(TEMP_MASTER)
 		master["id"] = id
 		masters.append(master)
 		print(f"created new master with id {id}")
@@ -217,7 +199,7 @@ async def remove(ctx, index:int):
 
 	if master is not None and length > 0:
 		index %= length
-		if master["index"] >= index and master["index"] != 0: # set back index if removed activity already happend
+		if master["index"] >= index and master["index"] is not 0: # set back index if removed activity already happend
 			master["index"] -= 1
 		master["activities"].pop(index)
 		data_save()
@@ -274,100 +256,94 @@ async def exit_handler():
 	print("stopping maid bot.")
 
 
-def response_cancel(master_id):
-	for response in responses:
-		if response[0] == master_id:
-			response[1].cancel()
-			responses.remove(response)
+def reminder_cancel(master_id):
+	for reminder in reminders:
+		if reminder[0] is master_id:
+			reminder[1].cancel()
+			reminders.remove(reminder)
 			break
 
-def response_create(master, late=False):
+
+def reminder_create(master, late=False):
 	task = bot.loop.create_task(master_ask(master, late))
 	id = master["id"]
-	new_response = [id, task]
-	responses.append(new_response)
+	new_reminder = [id, task]
+	reminders.append(new_reminder)
+
 
 async def master_ask(master, late=False):
 	index = master["index"]
 	sorry = ""
 	if late:
-		sorry = random.choice(responses_late) + " "
-	greeting = random.choice(responses_greeting)
+		sorry = random.choice(RESPONSES['late']) + " "
+	greeting = random.choice(RESPONSES['greeting'])
 	activity = master["activities"][index]["name"]
-	message = await bot.get_user(master["id"]).send(random.choice(responses_ask).format(greeting, activity, sorry))
+	message = await bot.get_user(master["id"]).send(random.choice(RESPONSES['ask']).format(greeting, activity, sorry))
 	await message.add_reaction("✅")
 	await message.add_reaction("⏰")
 
-	await asyncio.sleep(snooze_time)
+	await asyncio.sleep(SNOOZE_TIME)
 	await message.delete()
 	await master_ask(master)
 
 
 async def master_congratulate(master):
-	emoji = random.choice(responses_emoji)
-	await bot.get_user(master["id"]).send(random.choice(responses_congrats).format(emoji))
+	emoji = random.choice(RESPONSES['emoji'])
+	await bot.get_user(master["id"]).send(random.choice(RESPONSES["congrats"]).format(emoji))
 
 
 async def master_snooze(master):
-	t = f"{int(snooze_time / 60)} minutes"
-	await bot.get_user(master["id"]).send(random.choice(responses_snooze).format(t))
+	t = f"{int(SNOOZE_TIME / 60)} minutes"
+	await bot.get_user(master["id"]).send(random.choice(RESPONSES['snooze']).format(t))
 
-	response_cancel(master["id"])
-	await asyncio.sleep(snooze_time)
+	reminder_cancel(master["id"])
+	await asyncio.sleep(SNOOZE_TIME)
 
-	response_create(master)
+	reminder_create(master)
 
 
 async def master_add(ctx):
-	greeting = random.choice(responses_greeting)
-	activity = random.choice(responses_activity)
-	tasks = random.choice(responses_tasks)
-	end = random.choice(responses_end)
-	await ctx.send(random.choice(responses_add).format(greeting, activity, tasks, end))
+	greeting = random.choice(RESPONSES['greeting'])
+	activity = random.choice(RESPONSES['activity'])
+	tasks = random.choice(RESPONSES['tasks'])
+	end = random.choice(RESPONSES['end'])
+	await ctx.send(random.choice(RESPONSES['add']).format(greeting, activity, tasks, end))
 
 
 async def master_list(ctx, text):
-	greeting = random.choice(responses_greeting)
-	tasks = random.choice(responses_tasks)
-	end = random.choice(responses_end)
-	await ctx.message.delete()
-	await ctx.send(random.choice(responses_list).format(greeting, tasks, text, end))
+	if ctx.guild is not None: # delete users message unless in DM channel
+		await ctx.message.delete()
+
+	greeting = random.choice(RESPONSES['greeting'])
+	tasks = random.choice(RESPONSES['tasks'])
+	end = random.choice(RESPONSES['end'])
+
+	await ctx.send(random.choice(RESPONSES['list']).format(greeting, tasks, text, end))
 
 
 async def master_nolist(ctx):
-	greeting = random.choice(responses_greeting)
-	tasks = random.choice(responses_tasks)
-	await ctx.send(random.choice(responses_nolist).format(greeting, tasks))
+	greeting = random.choice(RESPONSES['greeting'])
+	tasks = random.choice(RESPONSES['tasks'])
+	await ctx.send(random.choice(RESPONSES['nolist']).format(greeting, tasks))
 
 
 async def master_remove(ctx):
-	greeting = random.choice(responses_greeting)
-	activity = random.choice(responses_activity)
-	tasks = random.choice(responses_tasks)
-	await ctx.send(random.choice(responses_remove).format(greeting, activity, tasks))
+	greeting = random.choice(RESPONSES['greeting'])
+	activity = random.choice(RESPONSES['activity'])
+	tasks = random.choice(RESPONSES['tasks'])
+	await ctx.send(random.choice(RESPONSES['remove']).format(greeting, activity, tasks))
 
-
-def response_wait(master, late=False):
-	bot.loop.create_task(master_ask(master, late))
-	pass
-
-
-def get_wait(master, index):
-	for item in responses:
-		if item[0] == master and item[1] == index:
-			return item
-	return None
 
 def get_master(id):
-	for i in masters:
-		if i["id"] == id:
-			return i
+	for master in masters:
+		if master["id"] is id:
+			return master
 	return None
 
 
 def activity_add(master, ctx, args):
 	# create a new activity from a template
-	new_activity = deepcopy(activity_template)
+	new_activity = deepcopy(TEMP_ACTIVITY)
 
 	t = time_to_seconds(args[0])
 	ask = t > datetime.now().hour * 3600 + datetime.now().minute * 60
@@ -383,14 +359,15 @@ def activity_add(master, ctx, args):
 
 	# add activity to the master activities array
 	if index is not None:
-		if master["index"] > index or master["index"] == index and not ask:
+		if master["index"] > index or master["index"] is index and not ask:
 			master["index"] += 1
 		master["activities"].insert(i, new_activity)
 	else:
-		if master["index"] == len(master["activities"]) and not ask:
+		if master["index"] is len(master["activities"]) and not ask:
 			master["index"] += 1
 		master["activities"].append(new_activity)
 	print (f"added new activity for master {master['id']} {new_activity}")
+
 
 def time_to_seconds(time_string):
 	h, m = time_string.split(":")
@@ -405,44 +382,26 @@ def data_save():
 	out = [date.year, date.month, date.day]
 	save_data = dict(date=out, masters=masters)
 
-	with open(file_data, 'w') as fp:
+	with open(FP_DATA, 'w') as fp:
 		json.dump(save_data, fp, indent="\t")
 		print("saved data to json")
 
 
 def data_load():
-	with open(file_data) as fp:
+	with open(FP_DATA) as fp:
 		jsondata = json.load(fp)
 
 		global date
-
 		date_list = jsondata["date"]
 		y, m, d = date_list[0], date_list[1], date_list[2]
 		date = datetime(y, m, d)
 
-		for i in jsondata["masters"]:
-			for master in masters:
-				if master == i:
-					print("duplicate master")
-			if i not in masters:
-				masters.append(i)
+		global masters
+		masters = jsondata["masters"]
 
-	with open(file_responses) as fp:
-		json_responses = json.load(fp)
-		global responses_greeting, responses_remove, responses_nolist, responses_list,responses_end, responses_tasks, responses_activity, responses_snooze,responses_emoji, responses_congrats
-		responses_greeting = json_responses["greeting"]
-		responses_ask      = json_responses["ask"]
-		responses_late     = json_responses["late"]
-		responses_congrats = json_responses["congrats"]
-		responses_emoji    = json_responses["emoji"]
-		responses_snooze   = json_responses["snooze"]
-		responses_add      = json_responses["add"]
-		responses_activity = json_responses["activity"]
-		responses_tasks    = json_responses["tasks"]
-		responses_end      = json_responses["end"]
-		responses_list     = json_responses["list"]
-		responses_nolist   = json_responses["nolist"]
-		responses_remove   = json_responses["remove"]
+	with open(FP_RESPONSES) as fp:
+		global RESPONSES
+		RESPONSES = json.load(fp)
 
 	print("loaded data from json")
 
