@@ -7,7 +7,7 @@
 	"masters": [
 		{
 			"id": 204981328305848330,
-			"activities": [
+			"reminders": [
 				{
 					"time": 1800,
 					"name": "brush your teeth"
@@ -46,51 +46,48 @@
 				}
 			],
 			"index": 0,
+			"asking": true,
 			"wait": false
 		},
 		{
 			"id": 273156730911850496,
-			"activities": [],
+			"reminders": [],
 			"index": 0,
+			"asking": false,
 			"wait": false
 		},
 		{
 			"id": 273160565051097090,
-			"activities": [],
+			"reminders": [],
 			"index": 0,
+			"asking": false,
 			"wait": false
 		},
 		{
 			"id": 273868146878971915,
-			"activities": [],
+			"reminders": [],
 			"index": 0,
+			"asking": false,
 			"wait": false
 		},
 		{
 			"id": 270603696683876352,
-			"activities": [
+			"reminders": [
 				{
 					"time": 0,
 					"name": "sp\u00e1nok"
 				}
 			],
 			"index": 1,
+			"asking": false,
 			"wait": false
 		},
 		{
 			"id": 212002032624730112,
-			"activities": [
-				{
-					"time": 0,
-					"name": "sleep"
-				},
-				{
-					"time": 32400,
-					"name": "wake"
-				}
-			],
+			"reminders": [],
 			"index": 0,
-			"wait": true
+			"asking": false,
+			"wait": false
 		}
 	]
 }

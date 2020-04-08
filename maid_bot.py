@@ -20,8 +20,8 @@ FP_DATA = 'data.json'
 FP_RESPONSES = 'responses.json'
 
 RESPONSES = dict()
-TEMP_MASTER = dict(id=0, activities=[], index=0, wait=False)
-TEMP_ACTIVITY = dict(time=0, name='')
+TEMP_MASTER = dict(id=0, reminders=[], index=0, asking=False, wait=False)
+TEMP_REMINDER = dict(time=0, name='')
 
 SNOOZE_TIME = 600
 LATE_THRESHOLD_TIME = 300
@@ -36,12 +36,14 @@ masters = []
 
 @bot.event
 async def on_ready():
-	# load all masters and their activities from json
+	# load all masters and their reminders from json
 	await bot.change_presence(activity=discord.Game("with copy.deepcopy()"))
 	data_load()
 
 	for master in masters:
-		master["wait"] = False
+		master['asking'] = False
+		if master['wait']:
+			reminder_start(master, True)
 
 	update_restart()
 	print("maid bot is ready.\n")
@@ -56,10 +58,14 @@ async def on_reaction_add(reaction, user):
 
 		master = get_master(user.id)
 		if reaction.emoji == "✅":  # iterate index
-			master["index"] += 1
-			master["wait"] = False
+			master['index'] += 1
+			master['asking'] = False
 
 			reminder_cancel(master["id"])
+
+			if master['index'] == len(master['reminders']) and master['wait']:
+				master['wait'] = False
+				master['index'] = 0
 
 			data_save()
 			update_restart()
@@ -75,10 +81,11 @@ async def update():
 		if date.day != datetime.now().day:
 			date = datetime.now()
 			for master in masters:
-				master["index"] = 0
-				master["wait"] = False
-				reminder_cancel(master["id"])
-			print("new day activities index reset")
+				if master['index'] == len(master['reminders']):
+					master['index'] = 0
+				else:
+					master['wait'] = True
+			print("new day")
 			data_save()
 
 		t = get_seconds()
@@ -87,8 +94,8 @@ async def update():
 		alarms = []
 		# find smallest delta
 		for master in masters:
-			if master["index"] < len(master["activities"]) and not master["wait"]:
-				master_delta = master["activities"][master["index"]]["time"] - t
+			if not master['wait'] and master["index"] < len(master["reminders"]) and not master["asking"]:
+				master_delta = master["reminders"][master["index"]]["time"] - t
 
 				print(f"id:{master['id']}, master_delta: {master_delta}, delta:{delta}")
 				if master_delta > 0:
@@ -106,9 +113,9 @@ async def update():
 
 			print(f"alarm id:{master['id']} late: {late}")
 
-			master["wait"] = True
+			master["asking"] = True
 
-			reminder_create(master, late)
+			reminder_start(master, late)
 
 		data_save()
 
@@ -158,7 +165,7 @@ async def add(ctx, _time:str, *_name:str):
 		print(f"created new master with id {id}")
 
 	# add a new activity and save
-	activity_add(master, ctx, _time, _name)
+	reminder_add(master, ctx, _time, _name)
 	data_save()
 
 	update_restart()
@@ -170,14 +177,14 @@ async def add(ctx, _time:str, *_name:str):
 async def _list(ctx):
 
 	master = get_master(ctx.message.author.id)
-	if master is not None and len(master["activities"]) > 0:
+	if master is not None and len(master["reminders"]) > 0:
 
 		# start with masters name
 		items = [ctx.message.author.display_name]
 
-		# append all masters activities
-		for i in range(0, len(master["activities"])):
-			activity = master["activities"][i]
+		# append all masters reminders
+		for i in range(0, len(master["reminders"])):
+			activity = master["reminders"][i]
 			items.append(f'{i}. {seconds_to_time(activity["time"])} {activity["name"]}')
 
 		# format into code block
@@ -190,16 +197,16 @@ async def _list(ctx):
 @bot.command(help='removes element from your list by index')
 async def remove(ctx, index:int):
 	master = get_master(ctx.message.author.id)
-	if master is not None and len(master["activities"]) > 0:
-		index %= len(master["activities"])
+	if master is not None and len(master["reminders"]) > 0:
+		index %= len(master["reminders"])
 		if master["index"] >= index:
-			length = len(master["activities"])
+			length = len(master["reminders"])
 
 	if master is not None and length > 0:
 		index %= length
 		if master["index"] > index and master["index"] != 0:  # set back index if removed activity already happend
 			master["index"] -= 1
-		master["activities"].pop(index)
+		master["reminders"].pop(index)
 		data_save()
 
 		update_restart()
@@ -212,8 +219,8 @@ async def remove(ctx, index:int):
 @bot.command(help='clears your list')
 async def removeall(ctx):
 	master = get_master(ctx.message.author.id)
-	if master is not None and len(master["activities"]) > 0:
-		master["activities"].clear()
+	if master is not None and len(master["reminders"]) > 0:
+		master["reminders"].clear()
 		data_save()
 
 		update_restart()
@@ -244,7 +251,7 @@ def reminder_cancel(master_id):
 			break
 
 
-def reminder_create(master, late=False):
+def reminder_start(master, late=False):
 	task = bot.loop.create_task(master_ask(master, late))
 	id = master["id"]
 	new_reminder = [id, task]
@@ -257,7 +264,7 @@ async def master_ask(master, late=False):
 	if late:
 		sorry = random.choice(RESPONSES['late']) + " "
 	greeting = random.choice(RESPONSES['greeting'])
-	activity = master["activities"][index]["name"]
+	activity = master["reminders"][index]["name"]
 	message = await bot.get_user(master["id"]).send(random.choice(RESPONSES['ask']).format(greeting, activity, sorry))
 	await message.add_reaction("✅")
 	await message.add_reaction("⏰")
@@ -279,7 +286,7 @@ async def master_snooze(master):
 	reminder_cancel(master["id"])
 	await asyncio.sleep(SNOOZE_TIME)
 
-	reminder_create(master)
+	reminder_start(master)
 
 
 async def master_add(ctx):
@@ -321,9 +328,9 @@ def get_master(id):
 	return None
 
 
-def activity_add(master, ctx, _time, _name):
+def reminder_add(master, ctx, _time, _name):
 	# create a new activity from a template
-	new_activity = deepcopy(TEMP_ACTIVITY)
+	new_activity = deepcopy(TEMP_REMINDER)
 
 	t = time_to_seconds(_time)
 	ask = t > get_seconds()
@@ -332,20 +339,20 @@ def activity_add(master, ctx, _time, _name):
 	new_activity["name"] = " ".join(_name)
 
 	index = None
-	for i in range(0, len(master["activities"])):
-		if master["activities"][i]["time"] > new_activity["time"]:
+	for i in range(0, len(master["reminders"])):
+		if master["reminders"][i]["time"] > new_activity["time"]:
 			index = i
 			break
 
-	# add activity to the master activities array
+	# add activity to the master reminders array
 	if index is not None:
 		if master["index"] > index or master["index"] == index and not ask:
 			master["index"] += 1
-		master["activities"].insert(i, new_activity)
+		master["reminders"].insert(i, new_activity)
 	else:
-		if master["index"] == len(master["activities"]) and not ask:
+		if master["index"] == len(master["reminders"]) and not ask:
 			master["index"] += 1
-		master["activities"].append(new_activity)
+		master["reminders"].append(new_activity)
 	print (f"added new activity for master {master['id']} {new_activity}")
 
 
