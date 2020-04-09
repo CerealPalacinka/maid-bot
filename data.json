@@ -45,8 +45,8 @@
 					"name": "shower"
 				}
 			],
-			"index": 0,
-			"asking": true,
+			"index": 7,
+			"asking": false,
 			"wait": false
 		},
 		{

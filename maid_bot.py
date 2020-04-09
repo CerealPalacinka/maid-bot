@@ -41,9 +41,11 @@ async def on_ready():
 	data_load()
 
 	for master in masters:
-		master['asking'] = False
 		if master['wait']:
 			reminder_start(master, True)
+		else:
+			master['asking'] = False
+
 
 	update_restart()
 	print("maid bot is ready.\n")
@@ -259,6 +261,8 @@ def reminder_start(master, late=False):
 
 
 async def master_ask(master, late=False):
+	print(f'active reminders:\n{reminders}')
+
 	index = master["index"]
 	sorry = ""
 	if late:
