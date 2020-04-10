@@ -180,18 +180,23 @@ async def _list(ctx):
 
 	master = get_master(ctx.message.author.id)
 	if master is not None and len(master["reminders"]) > 0:
-
-		# start with masters name
-		items = [ctx.message.author.display_name]
+		items = []
 
 		# append all masters reminders
 		for i in range(0, len(master["reminders"])):
+
+			item = RESPONSES['list_item']
+			if i == master['index']:
+				item = RESPONSES['list_current']
+			
 			activity = master["reminders"][i]
-			items.append(f'{i}. {seconds_to_time(activity["time"])} {activity["name"]}')
+			items.append(item.format(i, seconds_to_time(activity["time"]), activity["name"]))
+
+		if ctx.guild is not None:  # delete users message unless in DM channel
+			await ctx.message.delete()
 
 		# format into code block
-		n = '\n'
-		await master_list(ctx, f'{n}```fix{n}{n.join(items)}```')
+		await master_list(ctx, RESPONSES['list_block'].format(ctx.message.author.display_name, '\n'.join(items)))
 	else: 
 		await master_nolist(ctx)
 
@@ -199,21 +204,20 @@ async def _list(ctx):
 @bot.command(help='removes element from your list by index')
 async def remove(ctx, index:int):
 	master = get_master(ctx.message.author.id)
-	if master is not None and len(master["reminders"]) > 0:
-		index %= len(master["reminders"])
-		if master["index"] >= index:
-			length = len(master["reminders"])
+	length = len(master["reminders"])
 
 	if master is not None and length > 0:
-		index %= length
-		if master["index"] > index and master["index"] != 0:  # set back index if removed activity already happend
-			master["index"] -= 1
-		master["reminders"].pop(index)
-		data_save()
+		if index == index % length:
+			if master["index"] > index and master["index"] != 0:  # set back index if removed activity already happend
+				master["index"] -= 1
+			master["reminders"].pop(index)
+			data_save()
 
-		update_restart()
+			update_restart()
 
-		await master_remove(ctx)
+			await master_remove(ctx)
+		else:
+			await ctx.send('no')
 	else:
 		await master_nolist(ctx)
 
@@ -227,7 +231,7 @@ async def removeall(ctx):
 
 		update_restart()
 
-		await master_remove(ctx)
+		await master_remove(ctx, True)
 	else:
 		await master_nolist(ctx)
 
@@ -318,14 +322,11 @@ async def master_add(ctx):
 
 
 async def master_list(ctx, text):
-	if ctx.guild is not None:  # delete users message unless in DM channel
-		await ctx.message.delete()
-
 	greeting = random.choice(RESPONSES['greeting'])
 	tasks = random.choice(RESPONSES['tasks'])
 	end = random.choice(RESPONSES['end'])
 
-	await ctx.send(random.choice(RESPONSES['list']).format(greeting, tasks, text, end))
+	await ctx.send(random.choice(RESPONSES['list']).format(greeting, tasks, end, text))
 
 
 async def master_nolist(ctx):
@@ -334,11 +335,15 @@ async def master_nolist(ctx):
 	await ctx.send(random.choice(RESPONSES['nolist']).format(greeting, tasks))
 
 
-async def master_remove(ctx):
+async def master_remove(ctx, all=False):
 	greeting = random.choice(RESPONSES['greeting'])
 	activity = random.choice(RESPONSES['activity'])
 	tasks = random.choice(RESPONSES['tasks'])
-	await ctx.send(random.choice(RESPONSES['remove']).format(greeting, activity, tasks))
+	_remove = RESPONSES['remove']
+	if all:
+		_remove = RESPONSES['remove_all']
+
+	await ctx.send(random.choice(_remove).format(greeting, activity, tasks))
 
 
 def get_master(id):
@@ -352,7 +357,7 @@ def reminder_add(master, ctx, _time, _name):
 	# create a new activity from a template
 	new_activity = deepcopy(TEMP_REMINDER)
 
-	t = time_to_seconds(_time)
+	t = max(0, min(time_to_seconds(_time), 86340))
 	ask = t > get_seconds()
 
 	new_activity["time"] = t

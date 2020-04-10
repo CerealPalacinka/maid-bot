@@ -161,12 +161,15 @@
 		"me too"
 	],
 	"list": [
-		"{0} here is your {1}!{2}",
-		"{0} here is your {1}! {3}{2}",
-		"here is your {1} {0}{2}",
-		"here is your {1}! {3}{2}",
-		"here is your {1}!{2}"
+		"{0} here is your {1}!{3}",
+		"{0} here is your {1}! {2}{3}",
+		"here is your {1} {0}{3}",
+		"here is your {1}! {2}{3}",
+		"here is your {1}!{3}"
 	],
+	"list_item": "{0}. {1} {2}",
+	"list_current": "{0}. {1} {2} <<<",
+	"list_block": "\n```fix\n{0}\n{1}```",
 	"nolist": [
 		"{0} sorry but there doesn't seem to be anything on your {1}",
 		"{0} sorry but there doesn't seem to be anything",
@@ -199,6 +202,17 @@
 		"i removed {1} from your {2}!",
 		"i have removed {1} from your {2} {0}",
 		"i removed {1} from your {2} {0}",
+		"done! {0}",
+		"done {0}",
+		"done!"
+	],
+	"remove_all": [
+		"{0} i have removed everything from your {2}!",
+		"{0} i removed everything from your {2}!",
+		"i have removed everything from your {2}!",
+		"i removed everything from your {2}!",
+		"i have removed everything from your {2} {0}",
+		"i removed everything from your {2} {0}",
 		"done! {0}",
 		"done {0}",
 		"done!"

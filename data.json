@@ -42,9 +42,9 @@
 				}
 			],
 			"index": 7,
-			"asking": true,
-			"wait": true,
-			"snooze": 600
+			"asking": false,
+			"wait": false,
+			"snooze": 1800
 		},
 		{
 			"id": 273156730911850496,
