@@ -2,7 +2,7 @@
 	"date": [
 		2020,
 		4,
-		10
+		11
 	],
 	"masters": [
 		{
@@ -42,8 +42,8 @@
 				}
 			],
 			"index": 7,
-			"asking": false,
-			"wait": false,
+			"asking": true,
+			"wait": true,
 			"snooze": 1800
 		},
 		{

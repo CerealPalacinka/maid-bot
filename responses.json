@@ -1,5 +1,5 @@
 {
-	"greeting": [
+	"hello": [
 		"nyaa!",
 		"nyaa! nyaa!",
 		"nyaa! nyaa! nyaa!",
@@ -25,23 +25,23 @@
 		"ahoj moj!"
 	],
 	"ask": [
-		"{0} {2}did you {1}?",
-		"{0} {2}am here to remind you to {1}",
-		"{0} {2}did you {1} already?",
-		"{0} {2}please tell me that you {1} already",
-		"{0} {2}please tell me that you didn't forgot to {1}",
-		"{0} {2}am here to remind you to do the thing",
-		"{0} {2}am here to remind you about the thing",
-		"{0} {2}did you do the thing already?",
-		"{0} {2}hope you didn't forgot to do the thing",
-		"{0} {2}hope you didn't forgot about the thing",
-		"{0} it's time for you to {1}!",
-		"{2}did you {1}?",
-		"{2}am here to remind you to {1}",
-		"{2}did you {1} already?",
-		"{2}please tell me that you {1} already",
-		"{2}please tell me that you didn't forgot to {1}",
-		"{2}did you do the thing already?",
+		"{0} {1}did you {2}?",
+		"{0} {1}am here to remind you to {2}",
+		"{0} {1}did you {2} already?",
+		"{0} {1}please tell me that you {2} already",
+		"{0} {1}please tell me that you didn't forgot to {2}",
+		"{0} {1}am here to remind you to do the thing",
+		"{0} {1}am here to remind you about the thing",
+		"{0} {1}did you do the thing already?",
+		"{0} {1}hope you didn't forgot to do the thing",
+		"{0} {1}hope you didn't forgot about the thing",
+		"{0} it's time for you to {2}!",
+		"{1}did you {2}?",
+		"{1}am here to remind you to {2}",
+		"{1}did you {2} already?",
+		"{1}please tell me that you {2} already",
+		"{1}please tell me that you didn't forgot to {2}",
+		"{1}did you do the thing already?",
 		"are you done now?",
 		"are you done?",
 		"done now?",
@@ -170,7 +170,7 @@
 	"list_item": "{0}. {1} {2}",
 	"list_current": "{0}. {1} {2} <<<",
 	"list_block": "\n```fix\n{0}\n{1}```",
-	"nolist": [
+	"list_no": [
 		"{0} sorry but there doesn't seem to be anything on your {1}",
 		"{0} sorry but there doesn't seem to be anything",
 		"{0} sorry but there isn't anything on your {1}",
@@ -206,15 +206,21 @@
 		"done {0}",
 		"done!"
 	],
-	"remove_all": [
-		"{0} i have removed everything from your {2}!",
-		"{0} i removed everything from your {2}!",
-		"i have removed everything from your {2}!",
-		"i removed everything from your {2}!",
-		"i have removed everything from your {2} {0}",
-		"i removed everything from your {2} {0}",
-		"done! {0}",
-		"done {0}",
-		"done!"
-	]
+	"set": [
+		"{0} i have set the value of the key for you!{1}",
+		"{0} i have set the key for you!{1}",
+		"{0} i set the value of the key for you!{1}",
+		"{0} i set the key for you!{1}",
+		"i have set the value of the key for you {0}!{1}",
+		"i have set the key for you {0}!{1}",
+		"i set the value of the key for you {0}!{1}",
+		"i set the key for you {0}!{1}",
+		"i have set the value of the key for you!{1}",
+		"i have set the key for you!{1}",
+		"i have set the the key for you!{1}",
+		"done! {0}{1}",
+		"done {0}{1}",
+		"done!{1}"
+	],
+	"set_block": "\n```diff\n{0}\n-'{1}': {2}\n+'{1}': {3}```"
 }

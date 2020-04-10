@@ -35,6 +35,7 @@ masters = []
 
 @bot.event
 async def on_ready():
+
 	# load all masters and their reminders from json
 	data_load()
 	await bot.change_presence(activity=discord.Game("with copy.deepcopy()"))
@@ -54,6 +55,7 @@ async def on_ready():
 @bot.event
 async def on_reaction_add(reaction, user):
 	if reaction.me and reaction.count > 1:
+
 		# remove reactions
 		await reaction.message.remove_reaction("✅", bot.user)
 		await reaction.message.remove_reaction("⏰", bot.user)
@@ -71,9 +73,9 @@ async def on_reaction_add(reaction, user):
 
 			data_save()
 			update_restart()
-			await master_congratulate(master)
+			await send_congrats(master)
 		elif reaction.emoji == "⏰":  # ask again after snooze
-			await master_snooze(master)
+			await send_snooze(master)
 
 
 async def update():
@@ -172,7 +174,7 @@ async def add(ctx, _time:str, *_name:str):
 
 	update_restart()
 
-	await master_add(ctx)
+	await send_add(ctx)
 
 
 @bot.command(name='list', help='shows your list of reminders')
@@ -190,15 +192,24 @@ async def _list(ctx):
 				item = RESPONSES['list_current']
 			
 			activity = master["reminders"][i]
-			items.append(item.format(i, seconds_to_time(activity["time"]), activity["name"]))
 
-		if ctx.guild is not None:  # delete users message unless in DM channel
-			await ctx.message.delete()
+			items.append(item.format(
+				i,
+				seconds_to_time(activity["time"]),
+				activity["name"]))
 
 		# format into code block
-		await master_list(ctx, RESPONSES['list_block'].format(ctx.message.author.display_name, '\n'.join(items)))
+		block = RESPONSES['list_block'].format(
+			ctx.message.author.display_name,
+			'\n'.join(items))
+
+		# delete users message unless in DM channel
+		if ctx.guild is not None:
+			await ctx.message.delete()
+
+		await send_list(ctx, block)
 	else: 
-		await master_nolist(ctx)
+		await send_list_no(ctx)
 
 
 @bot.command(help='removes element from your list by index')
@@ -206,47 +217,64 @@ async def remove(ctx, index:int):
 	master = get_master(ctx.message.author.id)
 	length = len(master["reminders"])
 
+	# check if list is not empty
 	if master is not None and length > 0:
-		if index == index % length:
-			if master["index"] > index and master["index"] != 0:  # set back index if removed activity already happend
+
+		# check index validity
+		if 0 <= index < length:
+
+			# set back index if removed activity already happend
+			if master["index"] > index and master["index"] != 0:
 				master["index"] -= 1
+
 			master["reminders"].pop(index)
 			data_save()
 
 			update_restart()
 
-			await master_remove(ctx)
+			await send_remove(ctx)
 		else:
 			await ctx.send('no')
 	else:
-		await master_nolist(ctx)
+		await send_list_no(ctx)
 
 
 @bot.command(help='clears your list')
 async def removeall(ctx):
 	master = get_master(ctx.message.author.id)
+
+	# check if list is not empty
 	if master is not None and len(master["reminders"]) > 0:
 		master["reminders"].clear()
 		data_save()
 
 		update_restart()
 
-		await master_remove(ctx, True)
+		await send_remove(ctx, True)
 	else:
-		await master_nolist(ctx)
+		await send_list_no(ctx)
 
 
 @bot.command(name='set', help='sets property for your config', usage='snooze 600')
 async def _set(ctx, key:str, value:int):
 	master = get_master(ctx.message.author.id)
 
-	if ctx.guild is not None:  # delete users message unless in DM channel
+	# delete users message unless in DM channel
+	if ctx.guild is not None:
 		await ctx.message.delete()
 
 	if master is not None and key in master and type(master[key]) == int:
 		old = master[key]
 		master[key] = value
-		await ctx.send(f'set ***{key}*** from ***{old}*** to ***{value}*** for {ctx.message.author.display_name}')
+
+		# format into code block
+		block = RESPONSES['set_block'].format(
+			ctx.message.author.display_name,
+			key,
+			old,
+			value)
+
+		await send_set(ctx, block)
 	else:
 		await ctx.send('no')
 
@@ -273,39 +301,37 @@ def reminder_cancel(master_id):
 
 
 def reminder_start(master, late=False):
-	task = bot.loop.create_task(master_ask(master, late))
+	task = bot.loop.create_task(send_ask(master, late))
 	id = master["id"]
 	new_reminder = [id, task]
 	reminders.append(new_reminder)
 
 
-async def master_ask(master, late=False):
+async def send_ask(master, late=False):
 	print(f'active reminders:\n{reminders}')
 
-	index = master["index"]
 	sorry = ""
 	if late:
-		sorry = random.choice(RESPONSES['late']) + " "
-	greeting = random.choice(RESPONSES['greeting'])
-	activity = master["reminders"][index]["name"]
-	message = await bot.get_user(master["id"]).send(random.choice(RESPONSES['ask']).format(greeting, activity, sorry))
+		sorry = response('late') + " "
+	activity = master["reminders"][master["index"]]["name"]
+
+	message = await bot.get_user(master["id"]).send(response('ask').format(response('greeting'), activity, sorry))
 	await message.add_reaction("✅")
 	await message.add_reaction("⏰")
 
 	await asyncio.sleep(master['snooze'])
 	await message.delete()
-	await master_ask(master)
+	await send_ask(master)
 
 
-async def master_congratulate(master):
-	emoji = random.choice(RESPONSES['emoji'])
-	await bot.get_user(master["id"]).send(random.choice(RESPONSES["congrats"]).format(emoji))
+async def send_congrats(master):
+	await bot.get_user(master["id"]).send(response('congrats').format(response('emoji')))
 
 
-async def master_snooze(master):
+async def send_snooze(master):
 	snooze_time = master['snooze']
 	t = f"{int(snooze_time / 60)} minutes"
-	await bot.get_user(master["id"]).send(random.choice(RESPONSES['snooze']).format(t))
+	await bot.get_user(master["id"]).send(response('snooze').format(t))
 
 	reminder_cancel(master["id"])
 	await asyncio.sleep(snooze_time)
@@ -313,37 +339,47 @@ async def master_snooze(master):
 	reminder_start(master)
 
 
-async def master_add(ctx):
-	greeting = random.choice(RESPONSES['greeting'])
-	activity = random.choice(RESPONSES['activity'])
-	tasks = random.choice(RESPONSES['tasks'])
-	end = random.choice(RESPONSES['end'])
-	await ctx.send(random.choice(RESPONSES['add']).format(greeting, activity, tasks, end))
+async def send_add(ctx):
+	await ctx.send(response('add').format(
+		response('hello'),
+		response('activity'),
+		response('tasks'),
+		response('end')))
 
 
-async def master_list(ctx, text):
-	greeting = random.choice(RESPONSES['greeting'])
-	tasks = random.choice(RESPONSES['tasks'])
-	end = random.choice(RESPONSES['end'])
-
-	await ctx.send(random.choice(RESPONSES['list']).format(greeting, tasks, end, text))
-
-
-async def master_nolist(ctx):
-	greeting = random.choice(RESPONSES['greeting'])
-	tasks = random.choice(RESPONSES['tasks'])
-	await ctx.send(random.choice(RESPONSES['nolist']).format(greeting, tasks))
+async def send_list(ctx, block):
+	await ctx.send(response('list').format(
+		response('hello'),
+		response('tasks'),
+		response('end'),
+		block))
 
 
-async def master_remove(ctx, all=False):
-	greeting = random.choice(RESPONSES['greeting'])
-	activity = random.choice(RESPONSES['activity'])
-	tasks = random.choice(RESPONSES['tasks'])
-	_remove = RESPONSES['remove']
+async def send_list_no(ctx):
+	await ctx.send(response('list_no').format(
+		response('hello'),
+		response('tasks')))
+
+
+async def send_remove(ctx, all=False):
+	activity = response('activity')
 	if all:
-		_remove = RESPONSES['remove_all']
+		activity = 'everything'
 
-	await ctx.send(random.choice(_remove).format(greeting, activity, tasks))
+	await ctx.send(response('remove').format(
+		response('hello'),
+		activity,
+		response('tasks')))
+
+
+async def send_set(ctx, block):
+	await ctx.send(response('set').format(
+		response('hello'),
+		block))
+
+
+def response(key):
+	return random.choice(RESPONSES[key])
 
 
 def get_master(id):
@@ -354,6 +390,7 @@ def get_master(id):
 
 
 def reminder_add(master, ctx, _time, _name):
+
 	# create a new activity from a template
 	new_activity = deepcopy(TEMP_REMINDER)
 
@@ -404,6 +441,8 @@ def data_save():
 
 
 def data_load():
+
+	# load date and masters
 	with open(FP_DATA) as fp:
 		jsondata = json.load(fp)
 
@@ -415,6 +454,7 @@ def data_load():
 		global masters
 		masters = jsondata["masters"]
 
+	# load Responses
 	with open(FP_RESPONSES) as fp:
 		global RESPONSES
 		RESPONSES = json.load(fp)
