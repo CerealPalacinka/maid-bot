@@ -315,7 +315,7 @@ async def send_ask(master, late=False):
 		sorry = response('late') + " "
 	activity = master["reminders"][master["index"]]["name"]
 
-	message = await bot.get_user(master["id"]).send(response('ask').format(response('hello'), activity, sorry))
+	message = await bot.get_user(master["id"]).send(response('ask').format(response('hello'), sorry, activity))
 	await message.add_reaction("✅")
 	await message.add_reaction("⏰")
 
