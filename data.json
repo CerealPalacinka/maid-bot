@@ -43,28 +43,32 @@
 			],
 			"index": 7,
 			"asking": true,
-			"wait": true
+			"wait": true,
+			"snooze": 600
 		},
 		{
 			"id": 273156730911850496,
 			"reminders": [],
 			"index": 0,
 			"asking": false,
-			"wait": false
+			"wait": false,
+			"snooze": 600
 		},
 		{
 			"id": 273160565051097090,
 			"reminders": [],
 			"index": 0,
 			"asking": false,
-			"wait": false
+			"wait": false,
+			"snooze": 600
 		},
 		{
 			"id": 273868146878971915,
 			"reminders": [],
 			"index": 0,
 			"asking": false,
-			"wait": false
+			"wait": false,
+			"snooze": 600
 		},
 		{
 			"id": 270603696683876352,
@@ -76,14 +80,16 @@
 			],
 			"index": 1,
 			"asking": false,
-			"wait": false
+			"wait": false,
+			"snooze": 600
 		},
 		{
 			"id": 212002032624730112,
 			"reminders": [],
 			"index": 0,
 			"asking": false,
-			"wait": false
+			"wait": false,
+			"snooze": 600
 		}
 	]
 }

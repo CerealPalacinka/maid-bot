@@ -20,10 +20,9 @@ FP_DATA = 'data.json'
 FP_RESPONSES = 'responses.json'
 
 RESPONSES = dict()
-TEMP_MASTER = dict(id=0, reminders=[], index=0, asking=False, wait=False)
+TEMP_MASTER = dict(id=0, reminders=[], index=0, asking=False, wait=False, snooze=600)
 TEMP_REMINDER = dict(time=0, name='')
 
-SNOOZE_TIME = 600
 LATE_THRESHOLD_TIME = 300
 
 date = None
@@ -233,6 +232,21 @@ async def removeall(ctx):
 		await master_nolist(ctx)
 
 
+@bot.command(name='set', help='sets property for your config', usage='snooze 600')
+async def _set(ctx, key:str, value:int):
+	master = get_master(ctx.message.author.id)
+
+	if ctx.guild is not None:  # delete users message unless in DM channel
+		await ctx.message.delete()
+
+	if master is not None and key in master and type(master[key]) == int:
+		old = master[key]
+		master[key] = value
+		await ctx.send(f'set ***{key}*** from ***{old}*** to ***{value}*** for {ctx.message.author.display_name}')
+	else:
+		await ctx.send('no')
+
+
 @bot.command()
 async def stop(ctx):
 	if ctx.message.author.id == 204981328305848330 or ctx.message.author.id == 270603696683876352:
@@ -274,7 +288,7 @@ async def master_ask(master, late=False):
 	await message.add_reaction("✅")
 	await message.add_reaction("⏰")
 
-	await asyncio.sleep(SNOOZE_TIME)
+	await asyncio.sleep(master['snooze'])
 	await message.delete()
 	await master_ask(master)
 
@@ -285,11 +299,12 @@ async def master_congratulate(master):
 
 
 async def master_snooze(master):
-	t = f"{int(SNOOZE_TIME / 60)} minutes"
+	snooze_time = master['snooze']
+	t = f"{int(snooze_time / 60)} minutes"
 	await bot.get_user(master["id"]).send(random.choice(RESPONSES['snooze']).format(t))
 
 	reminder_cancel(master["id"])
-	await asyncio.sleep(SNOOZE_TIME)
+	await asyncio.sleep(snooze_time)
 
 	reminder_start(master)
 
