@@ -2,7 +2,7 @@
 	"date": [
 		2020,
 		4,
-		9
+		10
 	],
 	"masters": [
 		{
@@ -37,17 +37,13 @@
 					"name": "refill the water bottle"
 				},
 				{
-					"time": 82800,
-					"name": "visit nhentai.net"
-				},
-				{
 					"time": 84600,
 					"name": "shower"
 				}
 			],
 			"index": 7,
-			"asking": false,
-			"wait": false
+			"asking": true,
+			"wait": true
 		},
 		{
 			"id": 273156730911850496,

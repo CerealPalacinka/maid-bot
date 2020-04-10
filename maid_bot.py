@@ -37,14 +37,15 @@ masters = []
 @bot.event
 async def on_ready():
 	# load all masters and their reminders from json
-	await bot.change_presence(activity=discord.Game("with copy.deepcopy()"))
 	data_load()
+	await bot.change_presence(activity=discord.Game("with copy.deepcopy()"))
 
-	for master in masters:
-		if master['wait']:
-			reminder_start(master, True)
-		else:
-			master['asking'] = False
+	if update_task is None:
+		for master in masters:
+			if master['wait']:
+				reminder_start(master, True)
+			else:
+				master['asking'] = False
 
 
 	update_restart()
@@ -73,7 +74,7 @@ async def on_reaction_add(reaction, user):
 			update_restart()
 			await master_congratulate(master)
 		elif reaction.emoji == "⏰":  # ask again after snooze
-			bot.loop.create_task(master_snooze(master))
+			await master_snooze(master)
 
 
 async def update():
