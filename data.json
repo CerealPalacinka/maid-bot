@@ -2,7 +2,7 @@
 	"date": [
 		2020,
 		4,
-		11
+		17
 	],
 	"masters": [
 		{
@@ -41,10 +41,11 @@
 					"name": "shower"
 				}
 			],
-			"index": 7,
+			"index": 6,
 			"asking": true,
-			"wait": true,
-			"snooze": 1800
+			"wait": false,
+			"snooze": 1800,
+			"message": 700765787417346159
 		},
 		{
 			"id": 273156730911850496,
@@ -52,7 +53,8 @@
 			"index": 0,
 			"asking": false,
 			"wait": false,
-			"snooze": 600
+			"snooze": 600,
+			"message": 0
 		},
 		{
 			"id": 273160565051097090,
@@ -60,7 +62,8 @@
 			"index": 0,
 			"asking": false,
 			"wait": false,
-			"snooze": 600
+			"snooze": 600,
+			"message": 0
 		},
 		{
 			"id": 273868146878971915,
@@ -68,7 +71,8 @@
 			"index": 0,
 			"asking": false,
 			"wait": false,
-			"snooze": 600
+			"snooze": 600,
+			"message": 0
 		},
 		{
 			"id": 270603696683876352,
@@ -81,7 +85,8 @@
 			"index": 1,
 			"asking": false,
 			"wait": false,
-			"snooze": 600
+			"snooze": 600,
+			"message": 0
 		},
 		{
 			"id": 212002032624730112,
@@ -89,7 +94,8 @@
 			"index": 0,
 			"asking": false,
 			"wait": false,
-			"snooze": 600
+			"snooze": 600,
+			"message": 0
 		}
 	]
 }

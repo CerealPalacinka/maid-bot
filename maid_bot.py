@@ -20,7 +20,7 @@ FP_DATA = 'data.json'
 FP_RESPONSES = 'responses.json'
 
 RESPONSES = dict()
-TEMP_MASTER = dict(id=0, reminders=[], index=0, asking=False, wait=False, snooze=600)
+TEMP_MASTER = dict(id=0, reminders=[], index=0, asking=False, wait=False, snooze=600, message=0)
 TEMP_REMINDER = dict(time=0, name='')
 
 LATE_THRESHOLD_TIME = 300
@@ -39,13 +39,19 @@ async def on_ready():
 	# load all masters and their reminders from json
 	data_load()
 	await bot.change_presence(activity=discord.Game("with copy.deepcopy()"))
+	
 
-	if update_task is None:
-		for master in masters:
-			if master['wait']:
-				reminder_start(master, True)
-			else:
-				master['asking'] = False
+	for master in masters:
+		if master['asking'] and master['message'] != 0:
+			message = await get_master_message(master)
+
+			await message.remove_reaction("✅", bot.user)
+			await message.remove_reaction("⏰", bot.user)
+
+			await message.add_reaction("✅")
+
+		if master['wait'] and not master['id'] in reminders:
+			reminder_start(master, True, True)
 
 
 	update_restart()
@@ -53,29 +59,40 @@ async def on_ready():
 
 
 @bot.event
-async def on_reaction_add(reaction, user):
-	if reaction.me and reaction.count > 1:
+async def on_raw_reaction_add(payload):
+	dm = bot.get_channel(payload.channel_id)
+	message = await dm.fetch_message(payload.message_id)
 
-		# remove reactions
-		await reaction.message.remove_reaction("✅", bot.user)
-		await reaction.message.remove_reaction("⏰", bot.user)
+	for reaction in message.reactions:
+		if reaction.count > 1:
 
-		master = get_master(user.id)
-		if reaction.emoji == "✅":  # iterate index
-			master['index'] += 1
-			master['asking'] = False
+			# remove reactions
+			await reaction.message.remove_reaction("✅", bot.user)
+			await reaction.message.remove_reaction("⏰", bot.user)
 
-			reminder_cancel(master["id"])
+			master = None
+			async for user in reaction.users():
+				if user is not bot.user:
+					master = get_master(user.id)
+					break
+			
+			if reaction.emoji == "✅":  # iterate index
+				master['index'] += 1
+				master['asking'] = False
 
-			if master['index'] == len(master['reminders']) and master['wait']:
-				master['wait'] = False
-				master['index'] = 0
+				reminder_cancel(master["id"])
 
-			data_save()
-			update_restart()
-			await send_congrats(master)
-		elif reaction.emoji == "⏰":  # ask again after snooze
-			await send_snooze(master)
+				if master['index'] == len(master['reminders']) and master['wait']:
+					master['wait'] = False
+					master['index'] = 0
+
+				data_save()
+				update_restart()
+				await send_congrats(master)
+			elif reaction.emoji == "⏰":  # ask again after snooze
+				await send_snooze(master)
+			
+			break
 
 
 async def update():
@@ -203,9 +220,7 @@ async def _list(ctx):
 			ctx.message.author.display_name,
 			'\n'.join(items))
 
-		# delete users message unless in DM channel
-		if ctx.guild is not None:
-			await ctx.message.delete()
+		await delete_user_message(ctx)
 
 		await send_list(ctx, block)
 	else: 
@@ -255,17 +270,29 @@ async def removeall(ctx):
 		await send_list_no(ctx)
 
 
-@bot.command(name='set', help='sets property for your config', usage='snooze 600')
-async def _set(ctx, key:str, value:int):
+@bot.command(name='get', help='gets value property from your config', usage='snooze')
+async def get(ctx, key:str):
 	master = get_master(ctx.message.author.id)
 
-	# delete users message unless in DM channel
-	if ctx.guild is not None:
-		await ctx.message.delete()
+	await delete_user_message(ctx)
 
-	if master is not None and key in master and type(master[key]) == int:
+	if master is not None and key in master:
+		await ctx.send(f"```fix\n'{key}': {master[key]}```")
+	else:
+		await ctx.send('no')
+
+
+@bot.command(name='set', help='sets value property for your config', usage='snooze 600')
+async def _set(ctx, key:str, value):
+	master = get_master(ctx.message.author.id)
+	value_new = eval(value)
+
+	await delete_user_message(ctx)
+
+	if master is not None and key in master and type(master[key]) == type(value_new):
 		old = master[key]
-		master[key] = value
+		master[key] = value_new
+		data_save()
 
 		# format into code block
 		block = RESPONSES['set_block'].format(
@@ -292,6 +319,11 @@ async def exit_handler():
 	print("stopping maid bot.")
 
 
+async def delete_user_message(ctx):
+	if ctx.guild is not None:
+		await ctx.message.delete()
+
+
 def reminder_cancel(master_id):
 	for reminder in reminders:
 		if reminder[0] == master_id:
@@ -300,15 +332,18 @@ def reminder_cancel(master_id):
 			break
 
 
-def reminder_start(master, late=False):
-	task = bot.loop.create_task(send_ask(master, late))
+def reminder_start(master, late=False, delay=False):
+	task = bot.loop.create_task(send_ask(master, late, delay))
 	id = master["id"]
 	new_reminder = [id, task]
 	reminders.append(new_reminder)
 
 
-async def send_ask(master, late=False):
+async def send_ask(master, late=False, delay=False):
 	print(f'active reminders:\n{reminders}')
+
+	if delay:
+		await asyncio.sleep(master['snooze'])
 
 	sorry = ""
 	if late:
@@ -316,6 +351,10 @@ async def send_ask(master, late=False):
 	activity = master["reminders"][master["index"]]["name"]
 
 	message = await bot.get_user(master["id"]).send(response('ask').format(response('hello'), sorry, activity))
+	
+	master['message'] = message.id
+	data_save()
+	
 	await message.add_reaction("✅")
 	await message.add_reaction("⏰")
 
@@ -387,6 +426,14 @@ def get_master(id):
 		if master["id"] == id:
 			return master
 	return None
+
+
+async def get_master_message(master):
+	if master['message'] == 0:
+		return None
+	
+	user = bot.get_user(master['id'])
+	return await user.fetch_message(master['message'])
 
 
 def reminder_add(master, ctx, _time, _name):
