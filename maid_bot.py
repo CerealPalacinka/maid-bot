@@ -115,11 +115,11 @@ async def update():
 		alarms = []
 		# find smallest delta
 		for master in masters:
-			if not master['wait'] and master["index"] < len(master["reminders"]) and not master["asking"]:
+			if master["index"] < len(master["reminders"]) and not master["asking"]:
 				master_delta = master["reminders"][master["index"]]["time"] - t
 
 				print(f"id:{master['id']}, master_delta: {master_delta}, delta:{delta}")
-				if master_delta > 0:
+				if not master['wait'] and master_delta > 0:
 					if master_delta < delta:
 						delta = master_delta
 				else:
@@ -164,7 +164,7 @@ async def bully(ctx):
 
 @bot.command(name='img')
 async def img(ctx):
-	await ctx.message.delete()
+	await delete_user_message(ctx)
 	embed = discord.Embed()
 	embed.set_image(url = random.choice(linkdatabase.armpitst))
 	await ctx.send(embed=embed)
@@ -283,23 +283,24 @@ async def get(ctx, key:str):
 
 
 @bot.command(name='set', help='sets value property for your config', usage='snooze 600')
-async def _set(ctx, key:str, value):
+async def _set(ctx, key:str, *value):
 	master = get_master(ctx.message.author.id)
-	value_new = eval(value)
+	v = " ".join(value)
+	value_new = eval(v)
 
 	await delete_user_message(ctx)
 
 	if master is not None and key in master and type(master[key]) == type(value_new):
 		old = master[key]
 		master[key] = value_new
-		data_save()
+		update_restart()
 
 		# format into code block
 		block = RESPONSES['set_block'].format(
 			ctx.message.author.display_name,
 			key,
 			old,
-			value)
+			v)
 
 		await send_set(ctx, block)
 	else:

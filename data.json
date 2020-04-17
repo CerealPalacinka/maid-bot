@@ -41,11 +41,11 @@
 					"name": "shower"
 				}
 			],
-			"index": 6,
-			"asking": true,
+			"index": 7,
+			"asking": false,
 			"wait": false,
 			"snooze": 1800,
-			"message": 700765787417346159
+			"message": 700774514992087123
 		},
 		{
 			"id": 273156730911850496,
