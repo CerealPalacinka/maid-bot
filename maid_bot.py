@@ -40,7 +40,6 @@ async def on_ready():
 	data_load()
 	await bot.change_presence(activity=discord.Game("with copy.deepcopy()"))
 	
-
 	for master in masters:
 		if master['asking'] and master['message'] != 0:
 			message = await get_master_message(master)
@@ -49,10 +48,11 @@ async def on_ready():
 			await message.remove_reaction("⏰", bot.user)
 
 			await message.add_reaction("✅")
-
-		if master['wait'] and not master['id'] in reminders:
-			reminder_start(master, True, True)
-
+	
+	if not reminders:
+		for master in masters:
+			if master['wait'] and not master['id'] in reminders:
+				reminder_start(master, False, True)
 
 	update_restart()
 	print("maid bot is ready.\n")
@@ -77,20 +77,9 @@ async def on_raw_reaction_add(payload):
 					break
 			
 			if reaction.emoji == "✅":  # iterate index
-				master['index'] += 1
-				master['asking'] = False
-
-				reminder_cancel(master["id"])
-
-				if master['index'] == len(master['reminders']) and master['wait']:
-					master['wait'] = False
-					master['index'] = 0
-
-				data_save()
-				update_restart()
-				await send_congrats(master)
+				await reminder_next(master)
 			elif reaction.emoji == "⏰":  # ask again after snooze
-				await send_snooze(master)
+				await snooze(master)
 			
 			break
 
@@ -173,6 +162,8 @@ async def img(ctx):
 
 @bot.command(help='adds a reminder to your list \nfor best result use imperative mood', usage='08:00 make coffee')
 async def add(ctx, _time:str, *_name:str):
+
+	channel = ctx.channel
 	# users id
 	id = ctx.message.author.id
 
@@ -191,12 +182,13 @@ async def add(ctx, _time:str, *_name:str):
 
 	update_restart()
 
-	await send_add(ctx)
+	await send_response(channel, ['add', 'hello', 'activity', 'tasks', 'end'])
 
 
 @bot.command(name='list', help='shows your list of reminders')
 async def _list(ctx):
 
+	channel = ctx.channel
 	master = get_master(ctx.message.author.id)
 	if master is not None and len(master["reminders"]) > 0:
 		items = []
@@ -218,17 +210,20 @@ async def _list(ctx):
 		# format into code block
 		block = RESPONSES['list_block'].format(
 			ctx.message.author.display_name,
-			'\n'.join(items))
+			'\n'.join(items)
+		)
 
 		await delete_user_message(ctx)
 
-		await send_list(ctx, block)
-	else: 
-		await send_list_no(ctx)
+		await send_response(channel, ['list', 'hello', 'tasks', 'end'], [block])
+	else:
+		await send_response(channel, ['list_no', 'hello', 'tasks'])
 
 
 @bot.command(help='removes element from your list by index')
 async def remove(ctx, index:int):
+
+	channel = ctx.channel
 	master = get_master(ctx.message.author.id)
 	length = len(master["reminders"])
 
@@ -242,51 +237,94 @@ async def remove(ctx, index:int):
 			if master["index"] > index and master["index"] != 0:
 				master["index"] -= 1
 
-			master["reminders"].pop(index)
+			activity = master["reminders"].pop(index)
+
+			block = RESPONSES['remove_block'].format(
+				ctx.message.author.display_name,
+				RESPONSES['list_item'].format(
+					index,
+					seconds_to_time(activity["time"]),
+					activity["name"]
+				)
+			)
+
 			data_save()
 
 			update_restart()
 
-			await send_remove(ctx)
+			await delete_user_message(ctx)
+			
+			await send_response(channel, ['remove', 'hello', 'activity', 'tasks'], [block])
 		else:
-			await ctx.send('no')
+			await send_response(channel, ['denied'])
 	else:
-		await send_list_no(ctx)
+		await send_response(channel, ['list_no', 'hello', 'tasks'])
 
 
 @bot.command(help='clears your list')
 async def removeall(ctx):
+
+	channel = ctx.channel
 	master = get_master(ctx.message.author.id)
 
 	# check if list is not empty
 	if master is not None and len(master["reminders"]) > 0:
+		items = []
+
+		# append all masters reminders
+		for i in range(0, len(master["reminders"])):
+			activity = master["reminders"][i]
+
+			items.append(RESPONSES['remove_item'].format(
+				i,
+				seconds_to_time(activity["time"]),
+				activity["name"]))
+
+		block = RESPONSES['remove_block'].format(
+			ctx.message.author.display_name,
+			'\n'.join(items)
+		)
+
 		master["reminders"].clear()
 		data_save()
 
 		update_restart()
 
-		await send_remove(ctx, True)
+		await delete_user_message(ctx)
+
+		await send_response(channel, ['remove', 'hello', 'remove_all', 'tasks'], [block])
 	else:
-		await send_list_no(ctx)
+		await send_response(channel, ['list_no', 'hello', 'tasks'])
 
 
-@bot.command(name='get', help='gets value property from your config', usage='snooze')
+@bot.command(help='gets value property from your config', usage='snooze')
 async def get(ctx, key:str):
+
+	channel = ctx.channel
 	master = get_master(ctx.message.author.id)
 
-	await delete_user_message(ctx)
-
 	if master is not None and key in master:
-		await ctx.send(f"```fix\n'{key}': {master[key]}```")
+
+		block = RESPONSES['get_block'].format(
+			ctx.message.author.display_name,
+			key,
+			master[key]
+		)
+
+		await delete_user_message(ctx)
+
+		await send_response(channel, ['get', 'hello'], [block])
 	else:
-		await ctx.send('no')
+		await send_response(channel, ['denied'])
 
 
 @bot.command(name='set', help='sets value property for your config', usage='snooze 600')
 async def _set(ctx, key:str, *value):
+
+	channel = ctx.channel
 	master = get_master(ctx.message.author.id)
-	v = " ".join(value)
-	value_new = eval(v)
+	value_string = " ".join(value)
+	value_new = eval(value_string)
 
 	await delete_user_message(ctx)
 
@@ -300,11 +338,11 @@ async def _set(ctx, key:str, *value):
 			ctx.message.author.display_name,
 			key,
 			old,
-			v)
+			value_string)
 
-		await send_set(ctx, block)
+		await send_response(channel, ['set', 'hello'], [block])
 	else:
-		await ctx.send('no')
+		await send_response(channel, ['denied'])
 
 
 @bot.command()
@@ -334,26 +372,47 @@ def reminder_cancel(master_id):
 
 
 def reminder_start(master, late=False, delay=False):
-	task = bot.loop.create_task(send_ask(master, late, delay))
+	task = bot.loop.create_task(ask(master, late, delay))
 	id = master["id"]
 	new_reminder = [id, task]
 	reminders.append(new_reminder)
 
 
-async def send_ask(master, late=False, delay=False):
+async def reminder_next(master):
+
+	channel = bot.get_user(master['id']).dm_channel
+
+	master['index'] += 1
+	master['asking'] = False
+
+	reminder_cancel(master["id"])
+
+	if master['index'] == len(master['reminders']) and master['wait']:
+		master['wait'] = False
+		master['index'] = 0
+
+	data_save()
+	update_restart()
+
+	await send_response(channel, ['congrats', 'emoji'])
+
+
+async def ask(master, late=False, delay=False):
 	print(f'active reminders:\n{reminders}')
 
 	if delay:
 		await asyncio.sleep(master['snooze'])
 
+	channel = bot.get_user(master['id']).dm_channel
+
 	sorry = ""
 	if late:
-		sorry = response('late') + " "
+		sorry = random.choice(RESPONSES['late']) + " "
 	activity = master["reminders"][master["index"]]["name"]
 
-	message = await bot.get_user(master["id"]).send(response('ask').format(response('hello'), sorry, activity))
-	
+	message = await send_response(channel, ['ask', 'hello'], [sorry, activity])
 	master['message'] = message.id
+	
 	data_save()
 	
 	await message.add_reaction("✅")
@@ -361,65 +420,30 @@ async def send_ask(master, late=False, delay=False):
 
 	await asyncio.sleep(master['snooze'])
 	await message.delete()
-	await send_ask(master)
+	await ask(master)
 
 
-async def send_congrats(master):
-	await bot.get_user(master["id"]).send(response('congrats').format(response('emoji')))
+async def snooze(master):
 
+	channel = bot.get_user(master['id']).dm_channel
+	text = f"{int(master['snooze'] / 60)} minutes"
 
-async def send_snooze(master):
-	snooze_time = master['snooze']
-	t = f"{int(snooze_time / 60)} minutes"
-	await bot.get_user(master["id"]).send(response('snooze').format(t))
+	await send_response(channel, ['snooze'], [text])
 
 	reminder_cancel(master["id"])
-	await asyncio.sleep(snooze_time)
+	await asyncio.sleep(master['snooze'])
 
 	reminder_start(master)
 
 
-async def send_add(ctx):
-	await ctx.send(response('add').format(
-		response('hello'),
-		response('activity'),
-		response('tasks'),
-		response('end')))
-
-
-async def send_list(ctx, block):
-	await ctx.send(response('list').format(
-		response('hello'),
-		response('tasks'),
-		response('end'),
-		block))
-
-
-async def send_list_no(ctx):
-	await ctx.send(response('list_no').format(
-		response('hello'),
-		response('tasks')))
-
-
-async def send_remove(ctx, all=False):
-	activity = response('activity')
-	if all:
-		activity = 'everything'
-
-	await ctx.send(response('remove').format(
-		response('hello'),
-		activity,
-		response('tasks')))
-
-
-async def send_set(ctx, block):
-	await ctx.send(response('set').format(
-		response('hello'),
-		block))
-
-
-def response(key):
-	return random.choice(RESPONSES[key])
+async def send_response(channel, keys, texts=[]):
+	sequence = []
+	for key in keys:
+		sequence.append(random.choice(RESPONSES[key]))
+	sequence += texts
+	main = sequence.pop(0)
+	
+	return await channel.send(main.format(*tuple(sequence)))
 
 
 def get_master(id):
