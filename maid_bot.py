@@ -208,10 +208,7 @@ async def _list(ctx):
 				activity["name"]))
 
 		# format into code block
-		block = RESPONSES['list_block'].format(
-			ctx.message.author.display_name,
-			'\n'.join(items)
-		)
+		block = format_block(ctx, 'list_block', '\n'.join(items))
 
 		await delete_user_message(ctx)
 
@@ -238,15 +235,14 @@ async def remove(ctx, index:int):
 				master["index"] -= 1
 
 			activity = master["reminders"].pop(index)
-
-			block = RESPONSES['remove_block'].format(
-				ctx.message.author.display_name,
-				RESPONSES['list_item'].format(
-					index,
-					seconds_to_time(activity["time"]),
-					activity["name"]
-				)
+			item = RESPONSES['remove_item'].format(
+				index,
+				seconds_to_time(activity["time"]),
+				activity["name"]
 			)
+
+			# format into code block
+			block = format_block(ctx, 'remove_block', item)
 
 			data_save()
 
@@ -279,11 +275,9 @@ async def removeall(ctx):
 				i,
 				seconds_to_time(activity["time"]),
 				activity["name"]))
-
-		block = RESPONSES['remove_block'].format(
-			ctx.message.author.display_name,
-			'\n'.join(items)
-		)
+		
+		# format into code block
+		block = format_block(ctx, 'remove_block', '\n'.join(items))
 
 		master["reminders"].clear()
 		data_save()
@@ -304,12 +298,8 @@ async def get(ctx, key:str):
 	master = get_master(ctx.message.author.id)
 
 	if master is not None and key in master:
-
-		block = RESPONSES['get_block'].format(
-			ctx.message.author.display_name,
-			key,
-			master[key]
-		)
+		# format into code block
+		block = format_block(ctx, 'get_block', key, master[key])
 
 		await delete_user_message(ctx)
 
@@ -334,11 +324,7 @@ async def _set(ctx, key:str, *value):
 		update_restart()
 
 		# format into code block
-		block = RESPONSES['set_block'].format(
-			ctx.message.author.display_name,
-			key,
-			old,
-			value_string)
+		block = format_block(ctx, 'set_block', key, old, value_string)
 
 		await send_response(channel, ['set', 'hello'], [block])
 	else:
@@ -444,6 +430,10 @@ async def send_response(channel, keys, texts=[]):
 	main = sequence.pop(0)
 	
 	return await channel.send(main.format(*tuple(sequence)))
+
+
+def format_block(ctx, key, *items):
+	return RESPONSES[key].format(ctx.message.author.display_name, *items)
 
 
 def get_master(id):
