@@ -123,15 +123,17 @@
 		"die"
 	],
 	"add": [
-		"{0} i added {1} to your {2}! {3}",
-		"{0} i have added {1} to your {2}! {3}",
-		"{0} i added {1} to your {2}!",
-		"{0} i have added {1} to your {2}!",
-		"i added {1} to your {2}! {3}",
-		"i have added {1} to your {2}! {3}",
-		"i added {1} to your {2}!",
-		"i have added {1} to your {2}!"
+		"{0} i added {1} to your {2}! {3}{4}",
+		"{0} i have added {1} to your {2}! {3}{4}",
+		"{0} i added {1} to your {2}!{4}",
+		"{0} i have added {1} to your {2}!{4}",
+		"i added {1} to your {2}! {3}{4}",
+		"i have added {1} to your {2}! {3}{4}",
+		"i added {1} to your {2}!{4}",
+		"i have added {1} to your {2}!{4}"
 	],
+	"add_item": "+{0}. {1} {2}",
+	"add_block": "\n```diff\n{0}\n{1}```",
 	"activity": [
 		"this",
 		"this activity",

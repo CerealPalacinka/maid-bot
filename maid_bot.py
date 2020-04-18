@@ -176,13 +176,18 @@ async def add(ctx, _time:str, *_name:str):
 		masters.append(master)
 		print(f"created new master with id {id}")
 
-	# add a new activity and save
-	reminder_add(master, ctx, _time, _name)
+	# add a new activity and save, returns list with index, time, name
+	l = reminder_add(master, _time, _name)
 	data_save()
 
 	update_restart()
 
-	await send_response(channel, ['add', 'hello', 'activity', 'tasks', 'end'])
+	item = RESPONSES['add_item'].format(*tuple(l))
+	block = format_block(ctx, 'add_block', item)
+
+	await delete_user_message(ctx)
+
+	await send_response(channel, ['add', 'hello', 'activity', 'tasks', 'end'], [block])
 
 
 @bot.command(name='list', help='shows your list of reminders')
@@ -316,8 +321,6 @@ async def _set(ctx, key:str, *value):
 	value_string = " ".join(value)
 	value_new = eval(value_string)
 
-	await delete_user_message(ctx)
-
 	if master is not None and key in master and type(master[key]) == type(value_new):
 		old = master[key]
 		master[key] = value_new
@@ -325,6 +328,8 @@ async def _set(ctx, key:str, *value):
 
 		# format into code block
 		block = format_block(ctx, 'set_block', key, old, value_string)
+
+		await delete_user_message(ctx)
 
 		await send_response(channel, ['set', 'hello'], [block])
 	else:
@@ -451,33 +456,32 @@ async def get_master_message(master):
 	return await user.fetch_message(master['message'])
 
 
-def reminder_add(master, ctx, _time, _name):
+def reminder_add(master, _time, _name):
 
 	# create a new activity from a template
 	new_activity = deepcopy(TEMP_REMINDER)
 
-	t = max(0, min(time_to_seconds(_time), 86340))
-	ask = t > get_seconds()
+	time = max(0, min(time_to_seconds(_time), 86340))
+	name = " ".join(_name)
+	ask = time > get_seconds()
 
-	new_activity["time"] = t
-	new_activity["name"] = " ".join(_name)
-
-	index = None
-	for i in range(0, len(master["reminders"])):
+	new_activity["time"] = time
+	new_activity["name"] = name
+	
+	length = len(master['reminders'])
+	index = length
+	for i in range(0, length):
 		if master["reminders"][i]["time"] > new_activity["time"]:
 			index = i
 			break
 
 	# add activity to the master reminders array
-	if index is not None:
-		if master["index"] > index or master["index"] == index and not ask:
-			master["index"] += 1
-		master["reminders"].insert(i, new_activity)
-	else:
-		if master["index"] == len(master["reminders"]) and not ask:
-			master["index"] += 1
-		master["reminders"].append(new_activity)
+	if master['index'] > index or master['index'] == index and not ask:
+		master['index'] += 1
+	master['reminders'].insert(index, new_activity)
+
 	print (f"added new activity for master {master['id']} {new_activity}")
+	return [index, seconds_to_time(time), name]
 
 
 def time_to_seconds(time_string):
