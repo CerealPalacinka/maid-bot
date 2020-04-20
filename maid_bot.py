@@ -8,6 +8,7 @@ import random
 import linkdatabase
 
 from discord.ext import commands
+from discord.ext.commands import Context
 from datetime import datetime
 from copy import deepcopy
 from dotenv import load_dotenv
@@ -59,12 +60,12 @@ async def on_ready():
 
 
 @bot.event
-async def on_raw_reaction_add(payload):
+async def on_raw_reaction_add(payload:discord.RawReactionActionEvent):
 	dm = bot.get_channel(payload.channel_id)
 	message = await dm.fetch_message(payload.message_id)
 
 	for reaction in message.reactions:
-		if reaction.count > 1:
+		if reaction.me and reaction.count > 1:
 
 			# remove reactions
 			await reaction.message.remove_reaction("✅", bot.user)
@@ -142,7 +143,7 @@ def update_restart():  # restart update loop
 
 
 @bot.command(help='i wont forgive you if u use this')
-async def bully(ctx):
+async def bully(ctx:Context):
 	users = []
 	for i in masters:
 		if ctx.message.author.id != i["id"]:
@@ -152,7 +153,7 @@ async def bully(ctx):
 
 
 @bot.command(name='img')
-async def img(ctx):
+async def img(ctx:Context):
 	await delete_user_message(ctx)
 	embed = discord.Embed()
 	embed.set_image(url = random.choice(linkdatabase.armpitst))
@@ -161,7 +162,7 @@ async def img(ctx):
 
 
 @bot.command(help='adds a reminder to your list \nfor best result use imperative mood', usage='08:00 make coffee')
-async def add(ctx, _time:str, *_name:str):
+async def add(ctx:Context, _time:str, *_name:str):
 
 	channel = ctx.channel
 	# users id
@@ -191,7 +192,7 @@ async def add(ctx, _time:str, *_name:str):
 
 
 @bot.command(name='list', help='shows your list of reminders')
-async def _list(ctx):
+async def _list(ctx:Context):
 
 	channel = ctx.channel
 	master = get_master(ctx.message.author.id)
@@ -223,7 +224,7 @@ async def _list(ctx):
 
 
 @bot.command(help='removes element from your list by index')
-async def remove(ctx, index:int):
+async def remove(ctx:Context, index:int):
 
 	channel = ctx.channel
 	master = get_master(ctx.message.author.id)
@@ -263,7 +264,7 @@ async def remove(ctx, index:int):
 
 
 @bot.command(help='clears your list')
-async def removeall(ctx):
+async def removeall(ctx:Context):
 
 	channel = ctx.channel
 	master = get_master(ctx.message.author.id)
@@ -297,7 +298,7 @@ async def removeall(ctx):
 
 
 @bot.command(help='gets value property from your config', usage='snooze')
-async def get(ctx, key:str):
+async def get(ctx:Context, key:str):
 
 	channel = ctx.channel
 	master = get_master(ctx.message.author.id)
@@ -314,7 +315,7 @@ async def get(ctx, key:str):
 
 
 @bot.command(name='set', help='sets value property for your config', usage='snooze 600')
-async def _set(ctx, key:str, *value):
+async def _set(ctx:Context, key:str, *value):
 
 	channel = ctx.channel
 	master = get_master(ctx.message.author.id)
@@ -337,7 +338,7 @@ async def _set(ctx, key:str, *value):
 
 
 @bot.command()
-async def stop(ctx):
+async def stop(ctx:Context):
 	if ctx.message.author.id == 204981328305848330 or ctx.message.author.id == 270603696683876352:
 		bot.loop.stop()
 	else:
@@ -345,11 +346,11 @@ async def stop(ctx):
 
 
 @atexit.register
-async def exit_handler():
-	print("stopping maid bot.")
+def exit_handler():
+	print("stopping maid bot.\n")
 
 
-async def delete_user_message(ctx):
+async def delete_user_message(ctx:Context):
 	if ctx.guild is not None:
 		await ctx.message.delete()
 
@@ -371,12 +372,13 @@ def reminder_start(master, late=False, delay=False):
 
 async def reminder_next(master):
 
-	channel = bot.get_user(master['id']).dm_channel
+	user = bot.get_user(master['id'])
 
 	master['index'] += 1
 	master['asking'] = False
+	master['message'] = 0
 
-	reminder_cancel(master["id"])
+	reminder_cancel(master['id'])
 
 	if master['index'] == len(master['reminders']) and master['wait']:
 		master['wait'] = False
@@ -385,7 +387,7 @@ async def reminder_next(master):
 	data_save()
 	update_restart()
 
-	await send_response(channel, ['congrats', 'emoji'])
+	await send_response(user, ['congrats', 'emoji'])
 
 
 async def ask(master, late=False, delay=False):
@@ -394,14 +396,13 @@ async def ask(master, late=False, delay=False):
 	if delay:
 		await asyncio.sleep(master['snooze'])
 
-	channel = bot.get_user(master['id']).dm_channel
-
 	sorry = ""
 	if late:
 		sorry = random.choice(RESPONSES['late']) + " "
 	activity = master["reminders"][master["index"]]["name"]
+	user = bot.get_user(master['id'])
 
-	message = await send_response(channel, ['ask', 'hello'], [sorry, activity])
+	message = await send_response(user, ['ask', 'hello'], [sorry, activity])
 	master['message'] = message.id
 	
 	data_save()
@@ -416,10 +417,10 @@ async def ask(master, late=False, delay=False):
 
 async def snooze(master):
 
-	channel = bot.get_user(master['id']).dm_channel
+	user = bot.get_user(master['id'])
 	text = f"{int(master['snooze'] / 60)} minutes"
 
-	await send_response(channel, ['snooze'], [text])
+	await send_response(user, ['snooze'], [text])
 
 	reminder_cancel(master["id"])
 	await asyncio.sleep(master['snooze'])
@@ -427,7 +428,7 @@ async def snooze(master):
 	reminder_start(master)
 
 
-async def send_response(channel, keys, texts=[]):
+async def send_response(channel, keys, texts=[]) -> discord.Message:
 	sequence = []
 	for key in keys:
 		sequence.append(random.choice(RESPONSES[key]))
@@ -437,7 +438,7 @@ async def send_response(channel, keys, texts=[]):
 	return await channel.send(main.format(*tuple(sequence)))
 
 
-def format_block(ctx, key, *items):
+def format_block(ctx:Context, key, *items):
 	return RESPONSES[key].format(ctx.message.author.display_name, *items)
 
 
@@ -448,7 +449,7 @@ def get_master(id):
 	return None
 
 
-async def get_master_message(master):
+async def get_master_message(master) -> discord.Message:
 	if master['message'] == 0:
 		return None
 	
@@ -503,6 +504,7 @@ def data_save():
 
 	with open(FP_DATA, 'w') as fp:
 		json.dump(save_data, fp, indent="\t")
+	
 		print("saved data to json")
 
 

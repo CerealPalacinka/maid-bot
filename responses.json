@@ -222,7 +222,7 @@
 		"{0} here is your value!{1}",
 		"here is the value! {0}{1}",
 		"here is your value! {0}{1}",
-		"here!"
+		"here!{1}"
 	],
 	"get_block": "\n```fix\n{0}\n'{1}': {2}```",
 	"set": [
@@ -253,5 +253,43 @@
 		"sorry",
 		"stop",
 		"no"
+	],
+	"meme": [
+		"haha yeah",
+		"i cant even",
+		"lmao",
+		"lmoa",
+		"mao",
+		"omg",
+		":harold:",
+		":vonk:",
+		":fronk1:",
+		":tomwha:",
+		":smuggjerry:",
+		":tomsly:",
+		":xd:",
+		":coldog:",
+		":weary:",
+		":sunglasses:"
+	],
+	"anime": [
+		"oh yes",
+		"oh yess",
+		"this is so me",
+		"me",
+		"sexy",
+		"uwu",
+		"cute",
+		"cure",
+		"moe",
+		":hideakii:",
+		":uwu:",
+		":ahego:",
+		":cringe:",
+		":3154_wholesomewolfy:",
+		":hichan:",
+		":spice:",
+		":milk:",
+		":heart_eyes:"
 	]
 }
