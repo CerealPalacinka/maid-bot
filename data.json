@@ -2,7 +2,7 @@
 	"date": [
 		2020,
 		4,
-		20
+		25
 	],
 	"masters": [
 		{
@@ -46,8 +46,8 @@
 				}
 			],
 			"index": 8,
-			"asking": false,
-			"wait": false,
+			"asking": true,
+			"wait": true,
 			"snooze": 1800,
 			"message": 0
 		},
@@ -86,11 +86,11 @@
 					"name": "sp\u00e1nok"
 				}
 			],
-			"index": 1,
-			"asking": false,
+			"index": 0,
+			"asking": true,
 			"wait": false,
 			"snooze": 600,
-			"message": 0
+			"message": 703372216066375791
 		},
 		{
 			"id": 212002032624730112,

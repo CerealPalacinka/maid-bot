@@ -33,6 +33,8 @@ reminders = []
 
 masters = []
 
+lurk_counter = [0, 0]
+
 
 @bot.event
 async def on_ready():
@@ -83,6 +85,63 @@ async def on_raw_reaction_add(payload:discord.RawReactionActionEvent):
 				await snooze(master)
 			
 			break
+
+
+@bot.event
+async def on_message(message:discord.Message):
+	master = get_master(message.author.id)
+	if master is not None:
+		bot.loop.create_task(lurk(message))
+		
+	await bot.process_commands(message)
+
+
+@bot.command()
+async def test(ctx:Context, user_id:int, message_id:int):
+	user = bot.get_user(user_id)
+	msg = await user.fetch_message(message_id)
+	print (f'user:{user} msg:{msg}')
+
+
+async def lurk(message:discord.Message):
+	
+	# wait for embeds to load
+	await asyncio.sleep(1)
+	if message.embeds or message.attachments:
+
+		old_id = lurk_counter[1]
+		lurk_counter[1] = message.author.id
+
+		# same author
+		if lurk_counter[1] == old_id:
+			lurk_counter[0] += 1
+			threshold = random.randint(2,4)
+			print(f'lurk threshold: {threshold}')
+			
+			if lurk_counter[0] >= threshold and message.channel.category_id == 464812325527093258:
+				lurk_counter[0] = 0
+				bot.loop.create_task(lurk_respond(message))
+		else:
+			lurk_counter[0] = 1
+		print(f'lurk counter: {lurk_counter}')
+
+
+async def lurk_respond(message:discord.Message):
+	sleep_time = random.randint(15,300)
+	print(f'lurk sleep for {sleep_time}')
+	await asyncio.sleep(sleep_time)
+
+	last_message = await message.channel.history(limit=1).flatten()
+	if message.author == last_message[0].author:
+
+		key = f'lurk_{message.channel.id}'
+		async with message.channel.typing():
+			typing_time = random.randint(1,5)
+			print(f'lurk typing for {typing_time}')
+			await asyncio.sleep(typing_time)
+			await send_response(message.channel, [key])
+	else:
+		print(f'lurk fail {last_message[0].author} answered first')
 
 
 async def update():
@@ -148,7 +207,6 @@ async def bully(ctx:Context):
 	for i in masters:
 		if ctx.message.author.id != i["id"]:
 			users.append(f'<@{i["id"]}>')
-			print(users)
 	await ctx.send(f'nyaa!! {random.choice(users)} 😿 help me pls!!!')
 
 
@@ -411,6 +469,10 @@ async def ask(master, late=False, delay=False):
 	await message.add_reaction("⏰")
 
 	await asyncio.sleep(master['snooze'])
+
+	master['message'] = 0
+	data_save()
+
 	await message.delete()
 	await ask(master)
 
@@ -505,7 +567,7 @@ def data_save():
 	with open(FP_DATA, 'w') as fp:
 		json.dump(save_data, fp, indent="\t")
 	
-		print("saved data to json")
+	print("saved data to json")
 
 
 def data_load():
