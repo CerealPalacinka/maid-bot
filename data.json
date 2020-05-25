@@ -1,7 +1,7 @@
 {
 	"date": [
 		2020,
-		4,
+		5,
 		25
 	],
 	"masters": [
@@ -25,10 +25,6 @@
 					"name": "brush your teeth"
 				},
 				{
-					"time": 32400,
-					"name": "26. apr 10am"
-				},
-				{
 					"time": 33000,
 					"name": "make coffee"
 				},
@@ -45,11 +41,11 @@
 					"name": "shower"
 				}
 			],
-			"index": 8,
+			"index": 7,
 			"asking": true,
-			"wait": true,
+			"wait": false,
 			"snooze": 1800,
-			"message": 0
+			"message": 714591126287286273
 		},
 		{
 			"id": 273156730911850496,
@@ -73,7 +69,7 @@
 			"id": 273868146878971915,
 			"reminders": [],
 			"index": 0,
-			"asking": false,
+			"asking": true,
 			"wait": false,
 			"snooze": 600,
 			"message": 0
@@ -86,11 +82,11 @@
 					"name": "sp\u00e1nok"
 				}
 			],
-			"index": 0,
-			"asking": true,
+			"index": 1,
+			"asking": false,
 			"wait": false,
-			"snooze": 600,
-			"message": 703372216066375791
+			"snooze": 1800,
+			"message": 0
 		},
 		{
 			"id": 212002032624730112,

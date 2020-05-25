@@ -89,6 +89,12 @@ async def on_raw_reaction_add(payload:discord.RawReactionActionEvent):
 
 @bot.event
 async def on_message(message:discord.Message):
+	prefixes = ('+', '*', '!', '+')
+	for prefix in prefixes:
+		if message.content.startswith(prefix):
+			bot.loop.create_task(delete_user_message(message))
+			return
+
 	master = get_master(message.author.id)
 	if master is not None:
 		bot.loop.create_task(lurk(message))
@@ -212,7 +218,7 @@ async def bully(ctx:Context):
 
 @bot.command(name='img')
 async def img(ctx:Context):
-	await delete_user_message(ctx)
+	await delete_user_message(ctx.message)
 	embed = discord.Embed()
 	embed.set_image(url = random.choice(linkdatabase.armpitst))
 	await ctx.send(embed=embed)
@@ -244,7 +250,7 @@ async def add(ctx:Context, _time:str, *_name:str):
 	item = RESPONSES['add_item'].format(*tuple(l))
 	block = format_block(ctx, 'add_block', item)
 
-	await delete_user_message(ctx)
+	await delete_user_message(ctx.message)
 
 	await send_response(channel, ['add', 'hello', 'activity', 'tasks', 'end'], [block])
 
@@ -274,7 +280,7 @@ async def _list(ctx:Context):
 		# format into code block
 		block = format_block(ctx, 'list_block', '\n'.join(items))
 
-		await delete_user_message(ctx)
+		await delete_user_message(ctx.message)
 
 		await send_response(channel, ['list', 'hello', 'tasks', 'end'], [block])
 	else:
@@ -312,7 +318,7 @@ async def remove(ctx:Context, index:int):
 
 			update_restart()
 
-			await delete_user_message(ctx)
+			await delete_user_message(ctx.message)
 			
 			await send_response(channel, ['remove', 'hello', 'activity', 'tasks'], [block])
 		else:
@@ -348,7 +354,7 @@ async def removeall(ctx:Context):
 
 		update_restart()
 
-		await delete_user_message(ctx)
+		await delete_user_message(ctx.message)
 
 		await send_response(channel, ['remove', 'hello', 'remove_all', 'tasks'], [block])
 	else:
@@ -365,7 +371,7 @@ async def get(ctx:Context, key:str):
 		# format into code block
 		block = format_block(ctx, 'get_block', key, master[key])
 
-		await delete_user_message(ctx)
+		await delete_user_message(ctx.message)
 
 		await send_response(channel, ['get', 'hello'], [block])
 	else:
@@ -388,7 +394,7 @@ async def _set(ctx:Context, key:str, *value):
 		# format into code block
 		block = format_block(ctx, 'set_block', key, old, value_string)
 
-		await delete_user_message(ctx)
+		await delete_user_message(ctx.message)
 
 		await send_response(channel, ['set', 'hello'], [block])
 	else:
@@ -408,9 +414,9 @@ def exit_handler():
 	print("stopping maid bot.\n")
 
 
-async def delete_user_message(ctx:Context):
-	if ctx.guild is not None:
-		await ctx.message.delete()
+async def delete_user_message(message:discord.Message):
+	if message.guild is not None:
+		await message.delete()
 
 
 def reminder_cancel(master_id):
