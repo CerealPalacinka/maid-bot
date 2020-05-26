@@ -103,10 +103,10 @@ async def on_message(message:discord.Message):
 
 
 @bot.command()
-async def test(ctx:Context, user_id:int, message_id:int):
-	user = bot.get_user(user_id)
-	msg = await user.fetch_message(message_id)
-	print (f'user:{user} msg:{msg}')
+async def test(ctx:Context, *text:int):
+	i = list(set(text))
+	i.reverse()
+	print (f'text:{i}')
 
 
 async def lurk(message:discord.Message):
@@ -287,8 +287,8 @@ async def _list(ctx:Context):
 		await send_response(channel, ['list_no', 'hello', 'tasks'])
 
 
-@bot.command(help='removes element from your list by index')
-async def remove(ctx:Context, index:int):
+@bot.command(help='removes element from your list by index', usage='0 1 2')
+async def remove(ctx:Context, *index:int):
 
 	channel = ctx.channel
 	master = get_master(ctx.message.author.id)
@@ -297,22 +297,35 @@ async def remove(ctx:Context, index:int):
 	# check if list is not empty
 	if master is not None and length > 0:
 
-		# check index validity
-		if 0 <= index < length:
+		denied = True
+		block_items = list()
+		indexes = list(set(index))
+		indexes.reverse()
 
-			# set back index if removed activity already happend
-			if master["index"] > index and master["index"] != 0:
-				master["index"] -= 1
+		for i in indexes:
 
-			activity = master["reminders"].pop(index)
-			item = RESPONSES['remove_item'].format(
-				index,
-				seconds_to_time(activity["time"]),
-				activity["name"]
-			)
+			# check index validity
+			if 0 <= i < length:
+
+				denied = False
+
+				# set back index if removed activity already happend
+				if master["index"] > i and master["index"] != 0:
+					master["index"] -= 1
+
+				activity = master["reminders"].pop(i)
+				item = RESPONSES['remove_item'].format(
+					i,
+					seconds_to_time(activity["time"]),
+					activity["name"]
+				)
+				block_items.append(item)
+		
+		if not denied:
+			block_items.reverse()
 
 			# format into code block
-			block = format_block(ctx, 'remove_block', item)
+			block = format_block(ctx, 'remove_block', '\n'.join(block_items))
 
 			data_save()
 
