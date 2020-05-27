@@ -89,7 +89,7 @@ async def on_raw_reaction_add(payload:discord.RawReactionActionEvent):
 
 @bot.event
 async def on_message(message:discord.Message):
-	prefixes = ('+', '*', '!', '+')
+	prefixes = ('+', '*', '!', '=')
 	for prefix in prefixes:
 		if message.content.startswith(prefix):
 			bot.loop.create_task(delete_user_message(message))

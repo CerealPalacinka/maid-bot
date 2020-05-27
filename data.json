@@ -2,7 +2,7 @@
 	"date": [
 		2020,
 		5,
-		26
+		27
 	],
 	"masters": [
 		{
@@ -41,8 +41,8 @@
 					"name": "shower"
 				}
 			],
-			"index": 7,
-			"asking": false,
+			"index": 6,
+			"asking": true,
 			"wait": false,
 			"snooze": 1800,
 			"message": 0
