@@ -62,7 +62,7 @@ async def on_ready():
 
 
 @bot.event
-async def on_raw_reaction_add(payload:discord.RawReactionActionEvent):
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 	dm = bot.get_channel(payload.channel_id)
 	message = await dm.fetch_message(payload.message_id)
 
@@ -142,7 +142,7 @@ async def lurk_respond(message:discord.Message):
 
 		key = f'lurk_{message.channel.id}'
 		async with message.channel.typing():
-			typing_time = random.randint(1,5)
+			typing_time = random.randint(1, 5)
 			print(f'lurk typing for {typing_time}')
 			await asyncio.sleep(typing_time)
 			await send_response(message.channel, [key])
@@ -208,7 +208,7 @@ def update_restart():  # restart update loop
 
 
 @bot.command(help='i wont forgive you if u use this')
-async def bully(ctx:Context):
+async def bully(ctx: Context):
 	users = []
 	for i in masters:
 		if ctx.message.author.id != i["id"]:
